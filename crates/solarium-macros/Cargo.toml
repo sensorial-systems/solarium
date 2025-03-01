@@ -1,0 +1,16 @@
+[package]
+name = "solarium-macros"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "2.0.29"
+quote = "1.0.33"
+proc-macro2 = "1"
+project-root.workspace = true
+anyhow.workspace = true
+ligen-ir.workspace = true
+solana-sdk.workspace = true

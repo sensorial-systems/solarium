@@ -1,0 +1,21 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/solarium",
+    "crates/solarium-macros",
+    "crates/solarium-cli"
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+solana-sdk = "2"
+solana-program = "2"
+solarium-macros = { path = "crates/solarium-macros" }
+
+clap = { version = "4", features = ["derive"] }
+anyhow = "1"
+project-root = "0.2.2"
+ligen-ir = "0.1.18"
