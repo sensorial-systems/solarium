@@ -2,6 +2,10 @@
 name = "solarium-cli"
 version.workspace = true
 edition.workspace = true
+readme.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [dependencies]
 anyhow.workspace = true
