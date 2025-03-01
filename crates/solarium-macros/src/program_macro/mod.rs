@@ -17,6 +17,6 @@ pub fn process(input: syn::ItemImpl) -> TokenStream {
             instruction_data: &[u8],  // External data passed to program
         ) -> solana_program::entrypoint::ProgramResult {
             #program_name.process(program_id, accounts, instruction_data)
-        }        
+        }
     }
 }
