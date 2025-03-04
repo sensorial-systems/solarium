@@ -7,6 +7,10 @@ description.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[[bin]]
+name = "solarium"
+path = "src/main.rs"
+
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true

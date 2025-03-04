@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "crates/solarium",
     "crates/solarium-macros",
-    "crates/solarium-cli"
+    "crates/solarium-cli",
 ]
 
 [workspace.package]
