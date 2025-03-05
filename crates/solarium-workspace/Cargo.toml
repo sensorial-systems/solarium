@@ -1,5 +1,5 @@
 [package]
-name = "solarium-cli"
+name = "solarium-workspace"
 version.workspace = true
 edition.workspace = true
 readme.workspace = true
@@ -7,12 +7,9 @@ description.workspace = true
 license.workspace = true
 authors.workspace = true
 
-[[bin]]
-name = "solarium"
-path = "src/main.rs"
-
 [dependencies]
+solana-sdk.workspace = true
+project-root.workspace = true
 anyhow.workspace = true
-clap.workspace = true
+ligen-ir.workspace = true
 tokio.workspace = true
-solarium-workspace.workspace = true
