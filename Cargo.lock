@@ -50,6 +50,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "anchor-lang-idl-spec"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bdf143115440fe621bdac3a29a1f7472e09f6cd82b2aa569429a0c13f103838"
+dependencies = [
+ "anyhow",
+ "serde",
+]
+
+[[package]]
 name = "anstream"
 version = "0.6.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2028,9 +2038,11 @@ dependencies = [
 name = "solarium-workspace"
 version = "0.1.0"
 dependencies = [
+ "anchor-lang-idl-spec",
  "anyhow",
  "ligen-ir",
  "project-root",
+ "shrinkwraprs",
  "solana-sdk",
  "tokio",
 ]

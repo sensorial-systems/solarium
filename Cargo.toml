@@ -16,13 +16,16 @@ license = "Apache-2.0"
 authors = ["Danilo Guanabara <danilo@sensorial.systems>"]
 
 [workspace.dependencies]
-solana-sdk = "=1.18.26"
-solana-program = "=1.18.26"
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
+
+solana-sdk = "=1.18.26"
+solana-program = "=1.18.26"
+anchor-lang-idl-spec = "0.1.0"
 
 tokio = { version = "1", features = ["full"] }
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 project-root = "0.2.2"
 ligen-ir = "0.1.18"
+shrinkwraprs = "0.3"

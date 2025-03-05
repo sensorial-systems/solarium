@@ -27,6 +27,8 @@ enum Commands {
         /// The program to deploy
         program: Option<String>,
     },
+    /// Generate the IDL for the program
+    Idl
 }
 
 #[tokio::main]
@@ -35,6 +37,12 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::Idl => {
+            for program in workspace.programs {
+                let idl = program.idl().await?;
+                println!("{:#?}", idl);
+            }
+        }
         Commands::Build => {
             workspace.build().await?;
         }
