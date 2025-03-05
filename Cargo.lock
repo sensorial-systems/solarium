@@ -1999,6 +1999,7 @@ dependencies = [
 name = "solarium"
 version = "0.1.0"
 dependencies = [
+ "solana-program",
  "solarium-macros",
 ]
 

@@ -9,3 +9,4 @@ authors.workspace = true
 
 [dependencies]
 solarium-macros.workspace = true
+solana-program.workspace = true
