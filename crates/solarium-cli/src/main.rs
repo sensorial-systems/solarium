@@ -38,9 +38,9 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Idl => {
-            for program in workspace.programs {
+            for program in &workspace.programs {
                 let idl = program.idl().await?;
-                println!("{:#?}", idl);
+                idl.save(&workspace).context("Failed to save IDL")?;
             }
         }
         Commands::Build => {

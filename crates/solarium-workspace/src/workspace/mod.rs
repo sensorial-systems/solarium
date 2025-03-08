@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use ligen_ir::Identifier;
-use solana_sdk::{signature::Keypair, signer::{EncodableKey, Signer}};
 
 use crate::Program;
 
@@ -19,14 +17,8 @@ impl Workspace {
         for entry in std::fs::read_dir(deploy_path).context("Failed to read deploy path")? {
             let entry = entry.context("Failed to read entry")?;
             let path = entry.path();
-            if path.is_file() && path.extension().map_or(false, |ext| ext == "json") && path.file_name().unwrap().to_string_lossy().to_string().contains("-keypair") {
-                let keypair = Keypair::read_from_file(&path).map_err(|e| anyhow::anyhow!("Failed to load keypair: {}", e))?;
-                let name = path.file_name().unwrap().to_string_lossy().to_string();
-                let name = name.replace("-keypair.json", "");
-                let name = Identifier::from(name);
-                let name = name.to_kebab_case();
-                let public_key = keypair.pubkey();
-                programs.push(Program { name, public_key });
+            if let Ok(program) = Program::try_from(&root, path) {
+                programs.push(program);
             }
         }
         
