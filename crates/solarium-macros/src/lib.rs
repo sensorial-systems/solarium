@@ -1,5 +1,9 @@
 mod program_id_macro;
 mod program_macro;
+mod account_macro;
+
+use ligen_parser::Parser;
+use ligen_rust_parser::types::structure::StructureParser;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
@@ -19,9 +23,16 @@ pub fn current_program_id(_input: TokenStream) -> TokenStream {
     program_id_macro::process(&current_program_id).expect("Failed to generate program ID").into()
 }
 
-
 #[proc_macro_attribute]
 pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::ItemImpl);
     program_macro::process(input).into()
+}
+
+#[proc_macro_attribute]
+pub fn account(_args: TokenStream, input: TokenStream) -> TokenStream {
+    let parser = StructureParser::new();
+    let structure = parser.parse(input.clone(), &ligen_parser::ParserConfig::default()).unwrap();
+    account_macro::process(structure).unwrap();
+    input
 }

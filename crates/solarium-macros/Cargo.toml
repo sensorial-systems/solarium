@@ -16,3 +16,11 @@ syn = "2.0.29"
 quote = "1.0.33"
 proc-macro2 = "1"
 anyhow.workspace = true
+
+ligen-ir.workspace = true
+ligen-rust-parser.workspace = true
+ligen-parser.workspace = true
+
+anchor-lang-idl-spec.workspace = true
+
+serde_json.workspace = true
