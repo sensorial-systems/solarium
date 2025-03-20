@@ -9,7 +9,6 @@ authors.workspace = true
 
 [dependencies]
 solana-sdk.workspace = true
-project-root.workspace = true
 anyhow.workspace = true
 ligen-ir.workspace = true
 tokio.workspace = true

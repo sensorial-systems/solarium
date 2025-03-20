@@ -1,4 +1,3 @@
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use crate::prelude::*;
@@ -40,22 +39,9 @@ impl Program {
     }
 
     fn workspace_toml(&self) -> Result<toml::Value> {
-        let path = &self.root;
-        let mut path_ancestors = path.as_path().ancestors();
-    
-        while let Some(p) = path_ancestors.next() {
-            let has_cargo =
-                std::fs::read_dir(p)?
-                    .into_iter()
-                    .any(|p| p.unwrap().file_name() == OsString::from("Cargo.lock"));
-            if has_cargo {
-                let workspace_root = PathBuf::from(p);
-                let toml = std::fs::read_to_string(workspace_root.join("Cargo.toml"))
-                    .context("Failed to read Cargo.toml")?;
-                return toml::from_str(&toml).context("Failed to parse Cargo.toml");
-            }
-        }
-        Err(anyhow::anyhow!("Failed to find workspace root"))
+        let workspace_root = Workspace::get_project_root_from_path(&self.root).context("Failed to get workspace root")?;
+        let content = std::fs::read_to_string(workspace_root.join("Cargo.toml")).context("Failed to read Cargo.toml")?;
+        toml::from_str(&content).context("Failed to parse Cargo.toml")
     }
 
     pub fn workspace_package(&self, table: &str, key: &str) -> Option<toml::Value> {

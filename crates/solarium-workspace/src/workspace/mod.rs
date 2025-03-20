@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{ffi::OsString, path::{Path, PathBuf}};
 
 use anyhow::{Context, Result};
 use ligen_ir::Identifier;
@@ -11,9 +11,34 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub fn current() -> Result<Self> {
+    pub fn get_project_root_from_path(path: impl AsRef<Path>) -> Result<PathBuf> {
+        let path = path.as_ref();
+        let mut path_ancestors = path.ancestors();
+
+        let mut cargo_toml = None;
+
+        while let Some(p) = path_ancestors.next() {
+            let has_cargo =
+                std::fs::read_dir(p)?
+                    .into_iter()
+                    .any(|p|
+                        p.map(|p|
+                            p.file_name() == OsString::from("Cargo.toml")
+                        ).unwrap_or(false)
+                    );
+            if has_cargo {
+                cargo_toml = Some(p);
+            }
+        }
+        if let Some(path) = cargo_toml {
+            return Ok(path.to_path_buf());
+        }
+        Err(anyhow::anyhow!("Failed to find workspace root"))
+    }
+
+    pub fn from_root(root: impl AsRef<Path>) -> Result<Self> {
+        let root = root.as_ref().to_path_buf();
         let mut programs = vec![];
-        let root = project_root::get_project_root().context("Failed to get project root")?;
         let deploy_path = root.join("target").join("deploy");
         if let Ok(entries) = std::fs::read_dir(deploy_path).context("Failed to read deploy path") {
             for entry in entries {
@@ -28,23 +53,55 @@ impl Workspace {
         Ok(Workspace { root, programs })
     }
 
-    pub fn new_program(&self, name: impl AsRef<str>) -> Result<()> {
+    pub fn new(name: impl AsRef<str>) -> Result<Self> {
+        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
+        let workspace_path = current_dir.join(name.as_ref());
+        
+        std::process::Command::new("git")
+            .arg("init")
+            .arg(&workspace_path)
+            .args(["-b", "main"])
+            .status()
+            .context("Failed to initialize git repository")?;
+
+        std::fs::write(workspace_path.join(".gitignore"), include_str!("templates/workspace/.gitignore.template")).context("Failed to write .gitignore")?;
+
+        let cargo_toml_path = workspace_path.join("Cargo.toml");
+        let cargo_toml_content = include_str!("templates/workspace/Cargo.toml.template").replace("{solarium_version}", env!("CARGO_PKG_VERSION"));
+        std::fs::write(&cargo_toml_path, cargo_toml_content).context("Failed to write Cargo.toml")?;
+        Self::from_root(&workspace_path)
+    }
+
+    pub fn current() -> Result<Self> {
+        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
+        let root = Workspace::get_project_root_from_path(&current_dir).context("Failed to get project root")?;
+        Self::from_root(&root)
+    }
+
+    pub fn new_program(&self, name: impl AsRef<str>, path: impl AsRef<Path>) -> Result<()> {
+        let root = path.as_ref().join(name.as_ref());
+
+        // Create new program
         std::process::Command::new("cargo")
             .arg("new")
-            .arg(name.as_ref())
             .arg("--lib")
+            .arg(&root)
             .status()
             .context("Failed to create new program")?;
         let program_name = Identifier::new(name.as_ref()).to_pascal_case();
+        
+        // Write lib.rs
         let lib_content = format!(include_str!("templates/program/src/lib.rs.template"), program_name = program_name);
-        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
-        let path = current_dir.join(name.as_ref()).join("src/lib.rs");
-        std::fs::write(&path, lib_content)
-            .context(format!("Failed to write {}", path.display()))?;
-        let cargo_toml_path = current_dir.join(name.as_ref()).join("Cargo.toml");
+        let lib_path = root.join("src/lib.rs");
+        std::fs::write(&lib_path, lib_content)
+            .context(format!("Failed to write {}", lib_path.display()))?;
+        
+        // Write Cargo.toml
+        let cargo_toml_path = root.join("Cargo.toml");
         let mut cargo_toml_content = std::fs::read_to_string(&cargo_toml_path).context("Failed to read Cargo.toml")?;
         cargo_toml_content = cargo_toml_content.replace("[dependencies]\n", "[dependencies]\nsolarium.workspace = true\n");
         std::fs::write(&cargo_toml_path, cargo_toml_content).context("Failed to write Cargo.toml")?;
+
         Ok(())
     }
 
