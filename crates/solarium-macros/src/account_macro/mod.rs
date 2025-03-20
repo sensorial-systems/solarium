@@ -38,7 +38,7 @@ fn get_idl_type(type_: &Type) -> IdlType {
 }
 
 pub fn process(input: TypeDefinition) -> Result<()> {
-    todo!("Use ligen-anchor-generator to generate the IDL");
+    // todo!("Use ligen-anchor-generator to generate the IDL");
 
     let current_program_id = std::env::var("CARGO_PKG_NAME").expect("Failed to get current program ID");
     let workspace = Workspace::current()?;

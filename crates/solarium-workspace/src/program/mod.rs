@@ -18,6 +18,22 @@ pub struct Program {
 }
 
 impl Program {
+    /// Get the program ID from a keypair file. If the keypair file does not exist, create a new one and return the public key.
+    pub fn get_program_id_from_file(workspace: &Workspace, name: impl AsRef<str>) -> Result<Pubkey> {
+        let name = name.as_ref();
+        let deploy = workspace.root.join("target").join("deploy");
+        let name = Identifier::new(name).to_snake_case();
+        let keypair_file = deploy.join(format!("{}-keypair.json", name));
+        if keypair_file.exists() {
+            let keypair = Keypair::read_from_file(keypair_file).map_err(|e| anyhow::anyhow!("Failed to read keypair: {}", e))?;
+            Ok(keypair.pubkey())
+        } else {
+            let keypair = Keypair::new();
+            keypair.write_to_file(&keypair_file).map_err(|e| anyhow::anyhow!("Failed to write keypair: {}", e))?;
+            Ok(keypair.pubkey())
+        }
+    }
+
     fn toml(&self) -> Result<toml::Value> {
         let content = std::fs::read_to_string(self.root.join("Cargo.toml")).context("Failed to read Cargo.toml")?;
         toml::from_str(&content).context("Failed to parse Cargo.toml")

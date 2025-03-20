@@ -8,14 +8,14 @@ pub fn process(input: syn::ItemImpl) -> TokenStream {
         struct #program_name;
         #input
 
-        ::solana_program::declare_id!(::solarium::current_program_id!());
-        ::solana_program::entrypoint!(process_instruction);
+        ::solarium::prelude::declare_id!(::solarium::current_program_id!());
+        ::solarium::prelude::solana_program::entrypoint!(process_instruction);
 
         pub fn process_instruction(
-            program_id: &solana_program::pubkey::Pubkey,      // Public key of the program
-            accounts: &[solana_program::account_info::AccountInfo], // Data accounts, payer, etc.
+            program_id: &solarium::prelude::solana_program::pubkey::Pubkey,      // Public key of the program
+            accounts: &[solarium::prelude::solana_program::account_info::AccountInfo], // Data accounts, payer, etc.
             instruction_data: &[u8],  // External data passed to program
-        ) -> solana_program::entrypoint::ProgramResult {
+        ) -> solarium::prelude::solana_program::entrypoint::ProgramResult {
             #program_name.process_instruction(program_id, accounts, instruction_data)
         }
     }

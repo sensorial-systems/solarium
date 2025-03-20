@@ -1,0 +1,11 @@
+[package]
+name = "hello-world"
+version.workspace = true
+edition.workspace = true
+readme.workspace = true
+description.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+solarium.workspace = true

@@ -1,14 +1,15 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use solarium_workspace::Workspace;
-use anyhow::Result;
+use solarium_workspace::{Program, Workspace};
+use anyhow::{Context, Result};
+
 pub fn process(program_name: &str) -> Result<TokenStream> {
     let workspace = Workspace::current()?;
-    let program = workspace.program(program_name).ok_or(anyhow::anyhow!("Program {} not found", program_name))?;
-    let program_id = program.public_key.to_bytes();
+    let program_id = Program::get_program_id_from_file(&workspace, program_name).context("Failed to fetch program ID")?;
+    let program_id = program_id.to_bytes();
 
     let expanded = quote! {
-        ::solana_program::pubkey::Pubkey::new_from_array([
+        ::solarium::prelude::solana_program::pubkey::Pubkey::new_from_array([
             #(#program_id),*
         ])
     };

@@ -16,3 +16,4 @@ anyhow.workspace = true
 clap.workspace = true
 tokio.workspace = true
 solarium-workspace.workspace = true
+bytemuck_derive.workspace = true

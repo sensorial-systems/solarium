@@ -1,12 +1,18 @@
 mod program_id_macro;
 mod program_macro;
 mod account_macro;
+mod declare_id;
 
 use ligen_parser::Parser;
 use ligen_rust_parser::types::structure::StructureParser;
 
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
+
+#[proc_macro]
+pub fn declare_id(input: TokenStream) -> TokenStream {
+    declare_id::process(input.into()).expect("Failed to generate program ID").into()
+}
 
 /// Fetches the Program ID in the current workspace.
 #[proc_macro]

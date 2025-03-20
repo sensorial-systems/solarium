@@ -11,6 +11,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// New a new program
+    New {
+        /// The name of the program
+        name: String,
+    },
     /// Build the programs
     Build,
     /// Test the programs
@@ -37,6 +42,9 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::New { name } => {
+            workspace.new_program(name)?;
+        }
         Commands::Idl => {
             for program in &workspace.programs {
                 let idl = program.idl().await?;

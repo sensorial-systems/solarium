@@ -1,0 +1,15 @@
+use solarium::prelude::*;
+use solana_program::msg;
+
+#[program]
+impl {program_name} {{
+    pub fn process_instruction(
+        &self,
+        _program_id: &solana_program::pubkey::Pubkey,
+        _accounts: &[solana_program::account_info::AccountInfo],
+        _instruction_data: &[u8],
+    ) -> Result<()> {{
+        msg!("Hello, world!");
+        Ok(())
+    }}
+}}

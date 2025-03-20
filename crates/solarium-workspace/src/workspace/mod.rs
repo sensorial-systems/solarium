@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use ligen_ir::Identifier;
 
 use crate::Program;
 
@@ -14,15 +15,37 @@ impl Workspace {
         let mut programs = vec![];
         let root = project_root::get_project_root().context("Failed to get project root")?;
         let deploy_path = root.join("target").join("deploy");
-        for entry in std::fs::read_dir(deploy_path).context("Failed to read deploy path")? {
-            let entry = entry.context("Failed to read entry")?;
-            let path = entry.path();
+        if let Ok(entries) = std::fs::read_dir(deploy_path).context("Failed to read deploy path") {
+            for entry in entries {
+                let entry = entry.context("Failed to read entry")?;
+                let path = entry.path();
             if let Ok(program) = Program::try_from(&root, path) {
                 programs.push(program);
+                }
             }
         }
         
         Ok(Workspace { root, programs })
+    }
+
+    pub fn new_program(&self, name: impl AsRef<str>) -> Result<()> {
+        std::process::Command::new("cargo")
+            .arg("new")
+            .arg(name.as_ref())
+            .arg("--lib")
+            .status()
+            .context("Failed to create new program")?;
+        let program_name = Identifier::new(name.as_ref()).to_pascal_case();
+        let lib_content = format!(include_str!("templates/program/src/lib.rs.template"), program_name = program_name);
+        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
+        let path = current_dir.join(name.as_ref()).join("src/lib.rs");
+        std::fs::write(&path, lib_content)
+            .context(format!("Failed to write {}", path.display()))?;
+        let cargo_toml_path = current_dir.join(name.as_ref()).join("Cargo.toml");
+        let mut cargo_toml_content = std::fs::read_to_string(&cargo_toml_path).context("Failed to read Cargo.toml")?;
+        cargo_toml_content = cargo_toml_content.replace("[dependencies]\n", "[dependencies]\nsolarium.workspace = true\n");
+        std::fs::write(&cargo_toml_path, cargo_toml_content).context("Failed to write Cargo.toml")?;
+        Ok(())
     }
 
     pub fn program(&self, name: impl AsRef<str>) -> Option<&Program> {
