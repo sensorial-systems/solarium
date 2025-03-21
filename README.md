@@ -22,16 +22,16 @@ Run the tests and detach the validator after the tests are finished:
 solarium test --detach
 ```
 
-Run the Solarium workspace:
-
-```bash
-solarium dev
-```
-
 Build the Solarium workspace:
 
 ```bash
 solarium build
+```
+
+Build the Solarium workspace and start the local validator:
+
+```bash
+solarium dev
 ```
 
 Deploy the Solarium workspace:
