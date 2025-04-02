@@ -111,6 +111,7 @@ impl Workspace {
     }
 
     pub async fn test(&self) -> Result<tokio::process::Child> {
+        self.build().await?;
         let child = self.dev().await?;
         let output = tokio::process::Command::new("cargo")
             .arg("test")

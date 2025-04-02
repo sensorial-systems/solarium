@@ -70,7 +70,6 @@ async fn main() -> Result<()> {
         Commands::Test { detach } => {
             let workspace = workspace?;
             if detach {
-                println!("Detaching test validator...");
                 workspace.test().await?.wait().await?;
             } else {
                 workspace.test().await?.kill().await?;
