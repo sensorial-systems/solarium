@@ -57,7 +57,7 @@ async fn main() -> Result<()> {
         Commands::Idl => {
             let workspace = workspace?;
             for program in &workspace.programs {
-                let idl = program.idl().await?;
+                let idl = program.idl()?;
                 idl.save_as(&workspace, IdlType::Anchor)?;
             }
         }

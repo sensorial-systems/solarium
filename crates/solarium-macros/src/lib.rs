@@ -38,7 +38,7 @@ pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn account(_args: TokenStream, input: TokenStream) -> TokenStream {
     let parser = StructureParser::new();
-    let structure = parser.parse(input.clone(), &ligen_parser::ParserConfig::default()).unwrap();
-    account_macro::process(structure).unwrap();
+    let structure = parser.parse(input.clone(), &ligen_parser::ParserConfig::default()).expect("Failed to parse account");
+    account_macro::process(structure).expect("Failed to generate account");
     input
 }

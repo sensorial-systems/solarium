@@ -6,6 +6,7 @@ use ligen_rust_parser::cargo::Cargo;
 
 use crate::Program;
 
+#[derive(Debug)]
 pub struct Workspace {
     pub root: PathBuf,
     pub programs: Vec<Program>,
@@ -81,8 +82,16 @@ impl Workspace {
         Ok(())
     }
 
-    pub fn program(&self, name: impl AsRef<str>) -> Option<&Program> {
-        self.programs.iter().find(|p| p.name == name.as_ref())
+    pub fn program(&self, name: impl AsRef<str>) -> Option<Program> {
+        // FIXME: This looks like a hack, we should find a better way to do this. It's needed because the workspace only contains programs that have generated keypairs. If we refer to a program that doesn't have a keypair, we create a new one.
+        let keypair_path = Program::get_keypair_path_for_name(self, name.as_ref()).ok()?;
+        if !keypair_path.exists() {
+            Program::create_keypair(self, name.as_ref()).ok()?;
+            let program = Program::try_from(&self.root, keypair_path).ok()?;
+            return Some(program);
+        }
+
+        self.programs.iter().find(|p| p.name == name.as_ref()).cloned()
     }
 
     pub async fn dev(&self) -> Result<tokio::process::Child> {

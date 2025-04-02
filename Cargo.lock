@@ -2231,6 +2231,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
+ "ligen-anchor-generator",
+ "ligen-generator",
  "ligen-ir",
  "ligen-parser",
  "ligen-rust-parser",

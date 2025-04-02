@@ -9,6 +9,7 @@ use solana_sdk::signer::{EncodableKey, Signer};
 use crate::idl::Idl;
 use crate::Workspace;
 
+#[derive(Debug, Clone)]
 pub struct Program {
     pub name: Identifier,
     pub public_key: Pubkey,
@@ -17,12 +18,25 @@ pub struct Program {
 }
 
 impl Program {
-    /// Get the program ID from a keypair file. If the keypair file does not exist, create a new one and return the public key.
-    pub fn get_program_id_from_file(workspace: &Workspace, name: impl AsRef<str>) -> Result<Pubkey> {
+    pub fn get_keypair_path_for_name(workspace: &Workspace, name: impl AsRef<str>) -> Result<PathBuf> {
         let name = name.as_ref();
         let deploy = workspace.root.join("target").join("deploy");
         let name = Identifier::new(name).to_snake_case();
         let keypair_file = deploy.join(format!("{}-keypair.json", name));
+        Ok(keypair_file)
+    }
+
+    pub fn create_keypair(workspace: &Workspace, name: impl AsRef<str>) -> Result<Keypair> {
+        let name = name.as_ref();
+        let keypair_file = Self::get_keypair_path_for_name(workspace, name)?;
+        let keypair = Keypair::new();
+        keypair.write_to_file(&keypair_file).map_err(|e| anyhow::anyhow!("Failed to write keypair: {}", e))?;
+        Ok(keypair)
+    }
+
+    /// Get the program ID from a keypair file. If the keypair file does not exist, create a new one and return the public key.
+    pub fn get_program_id_from_file(workspace: &Workspace, name: impl AsRef<str>) -> Result<Pubkey> {
+        let keypair_file = Self::get_keypair_path_for_name(workspace, name)?;
         if keypair_file.exists() {
             let keypair = Keypair::read_from_file(keypair_file).map_err(|e| anyhow::anyhow!("Failed to read keypair: {}", e))?;
             Ok(keypair.pubkey())
@@ -33,7 +47,7 @@ impl Program {
         }
     }
 
-    pub async fn idl(&self) -> Result<Idl> {
+    pub fn idl(&self) -> Result<Idl> {
         Idl::try_from(self)
     }
 

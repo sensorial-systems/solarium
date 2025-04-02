@@ -20,6 +20,8 @@ anyhow.workspace = true
 ligen-ir.workspace = true
 ligen-rust-parser.workspace = true
 ligen-parser.workspace = true
+ligen-generator.workspace = true
+ligen-anchor-generator.workspace = true
 
 anchor-lang-idl-spec.workspace = true
 
