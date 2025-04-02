@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::prelude::*;
+use crate::{prelude::*, IdlType};
 use ligen_ir::Identifier;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -35,6 +35,21 @@ impl Program {
 
     pub fn idl(&self) -> Result<Idl> {
         Idl::try_from(self)
+    }
+
+    pub fn idl_path(&self, workspace: &Workspace) -> PathBuf {
+        workspace.root.join("target").join("idl").join(format!("{}.json", self.name.to_snake_case()))
+    }
+
+    pub fn anchor_idl_from_file(&self, workspace: &Workspace) -> Result<anchor_lang_idl_spec::Idl> {
+        let idl_path = self.idl_path(workspace);
+        if !idl_path.exists() {
+            let idl = self.idl().context("Failed to get program IDL")?;
+            idl.save_as(&workspace, IdlType::Anchor).context("Failed to save IDL")?;
+        }
+        let idl = std::fs::read_to_string(&idl_path).context("Failed to read IDL")?;
+        let idl: anchor_lang_idl_spec::Idl = serde_json::from_str(&idl).context("Failed to parse IDL")?;
+        Ok(idl)
     }
 
     pub async fn deploy(&self, workspace: &Workspace) -> Result<()> {
