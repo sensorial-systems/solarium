@@ -48,7 +48,7 @@ impl TryFrom<&Program> for Idl {
 
     fn try_from(program: &Program) -> Result<Self, Self::Error> {
         let parser = RustLibraryParser::new();
-        let mut idl = parser.parse(&program.root, &ParserConfig::default())?;
+        let mut idl = parser.parse(&program.folder, &ParserConfig::default())?;
         idl.metadata.table.insert("address".to_string(), program.public_key.to_string());
         Ok(Idl { idl })
     }

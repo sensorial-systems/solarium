@@ -16,13 +16,14 @@ impl Workspace {
     pub fn from_root(root: impl AsRef<Path>) -> Result<Self> {
         let root = root.as_ref().to_path_buf();
         let mut programs = vec![];
-        let deploy_path = root.join("target").join("deploy");
-        if let Ok(entries) = std::fs::read_dir(deploy_path).context("Failed to read deploy path") {
-            for entry in entries {
-                let entry = entry.context("Failed to read entry")?;
-                let path = entry.path();
-            if let Ok(program) = Program::try_from(&root, path) {
-                programs.push(program);
+
+        for directory in walkdir::WalkDir::new(&root) {
+            let entry = directory.context("Failed to read directory")?;
+            let entry = entry.path();
+            if entry.is_file() && entry.file_name().map(|file_name| file_name.to_str() == Some("Cargo.toml")).unwrap_or(false) {
+                let folder = entry.parent().context("Failed to get parent directory")?;
+                if let Ok(program) = Program::try_from(&root, folder.to_path_buf()) {
+                    programs.push(program);
                 }
             }
         }
@@ -82,16 +83,8 @@ impl Workspace {
         Ok(())
     }
 
-    pub fn program(&self, name: impl AsRef<str>) -> Option<Program> {
-        // FIXME: This looks like a hack, we should find a better way to do this. It's needed because the workspace only contains programs that have generated keypairs. If we refer to a program that doesn't have a keypair, we create a new one.
-        let keypair_path = Program::get_keypair_path_for_name(self, name.as_ref()).ok()?;
-        if !keypair_path.exists() {
-            Program::create_keypair(self, name.as_ref()).ok()?;
-            let program = Program::try_from(&self.root, keypair_path).ok()?;
-            return Some(program);
-        }
-
-        self.programs.iter().find(|p| p.name == name.as_ref()).cloned()
+    pub fn program(&self, name: impl AsRef<str>) -> Option<&Program> {
+        self.programs.iter().find(|p| p.name == name.as_ref())
     }
 
     pub async fn dev(&self) -> Result<tokio::process::Child> {
