@@ -10,10 +10,16 @@ authors.workspace = true
 [dependencies]
 solana-sdk.workspace = true
 anyhow.workspace = true
+
 ligen-ir.workspace = true
+ligen-parser.workspace = true
+ligen-generator.workspace = true
+ligen-rust-parser.workspace = true
+ligen-anchor-parser.workspace = true
+ligen-anchor-generator.workspace = true
+
 tokio.workspace = true
 anchor-lang-idl-spec.workspace = true
-shrinkwraprs.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true
 toml.workspace = true

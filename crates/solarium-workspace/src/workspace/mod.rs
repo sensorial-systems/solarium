@@ -1,7 +1,8 @@
-use std::{ffi::OsString, path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use ligen_ir::Identifier;
+use ligen_rust_parser::cargo::Cargo;
 
 use crate::Program;
 
@@ -11,31 +12,6 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub fn get_project_root_from_path(path: impl AsRef<Path>) -> Result<PathBuf> {
-        let path = path.as_ref();
-        let mut path_ancestors = path.ancestors();
-
-        let mut cargo_toml = None;
-
-        while let Some(p) = path_ancestors.next() {
-            let has_cargo =
-                std::fs::read_dir(p)?
-                    .into_iter()
-                    .any(|p|
-                        p.map(|p|
-                            p.file_name() == OsString::from("Cargo.toml")
-                        ).unwrap_or(false)
-                    );
-            if has_cargo {
-                cargo_toml = Some(p);
-            }
-        }
-        if let Some(path) = cargo_toml {
-            return Ok(path.to_path_buf());
-        }
-        Err(anyhow::anyhow!("Failed to find workspace root"))
-    }
-
     pub fn from_root(root: impl AsRef<Path>) -> Result<Self> {
         let root = root.as_ref().to_path_buf();
         let mut programs = vec![];
@@ -74,7 +50,7 @@ impl Workspace {
 
     pub fn current() -> Result<Self> {
         let current_dir = std::env::current_dir().context("Failed to get current directory")?;
-        let root = Workspace::get_project_root_from_path(&current_dir).context("Failed to get project root")?;
+        let root = Cargo::get_project_root_from_path(&current_dir).context("Failed to get project root")?;
         Self::from_root(&root)
     }
 

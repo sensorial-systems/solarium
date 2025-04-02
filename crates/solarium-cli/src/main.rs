@@ -2,7 +2,7 @@ use std::path::Path;
 
 use clap::{Parser, Subcommand};
 use anyhow::{Result, Context};
-use solarium_workspace::Workspace;
+use solarium_workspace::{IdlType, Workspace};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
             let workspace = workspace?;
             for program in &workspace.programs {
                 let idl = program.idl().await?;
-                idl.save(&workspace).context("Failed to save IDL")?;
+                idl.save_as(&workspace, IdlType::Anchor)?;
             }
         }
         Commands::Build => {

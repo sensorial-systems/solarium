@@ -111,9 +111,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.96"
+version = "1.0.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b964d184e89d9b6b67dd2715bc8e74cf3107fb2b529990c90cf517326150bf4"
+checksum = "dcfed56ad506cb2c684a14971b8861fdc3baaaae314b9e5f9bb532cbe3ba7a4f"
 
 [[package]]
 name = "ark-bn254"
@@ -531,6 +531,16 @@ name = "bytes"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f61dac84819c6588b558454b194026eb1f09c293b9036ae9b159e74e73ab6cf9"
+
+[[package]]
+name = "cargo_toml"
+version = "0.16.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3f9629bc6c4388ea699781dc988c2b99766d7679b151c81990b4fa1208fafd3"
+dependencies = [
+ "serde",
+ "toml 0.8.20",
+]
 
 [[package]]
 name = "cc"
@@ -1221,13 +1231,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "ligen-anchor-generator"
+version = "0.1.18"
+dependencies = [
+ "anchor-lang-idl-spec",
+ "anyhow",
+ "ligen-generator",
+ "ligen-ir",
+]
+
+[[package]]
+name = "ligen-anchor-parser"
+version = "0.1.18"
+dependencies = [
+ "anchor-lang-idl-spec",
+ "ligen-ir",
+ "ligen-parser",
+ "serde_json",
+]
+
+[[package]]
 name = "ligen-common"
 version = "0.1.18"
 dependencies = [
+ "anyhow",
  "derive_more",
  "serde",
  "serde_json",
  "shrinkwraprs",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -1276,6 +1308,8 @@ dependencies = [
 name = "ligen-rust-parser"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "cargo_toml",
  "ligen",
  "proc-macro2",
  "quote",
@@ -2213,9 +2247,13 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
+ "ligen-anchor-generator",
+ "ligen-anchor-parser",
+ "ligen-generator",
  "ligen-ir",
+ "ligen-parser",
+ "ligen-rust-parser",
  "serde_json",
- "shrinkwraprs",
  "solana-sdk",
  "tokio",
  "toml 0.8.20",
