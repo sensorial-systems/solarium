@@ -1080,9 +1080,9 @@ dependencies = [
 
 [[package]]
 name = "is-tree"
-version = "0.9.7"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "626ed8456ae78f787e675bdfec62f52a2bf0815cbfcb8deca13e16171853b75c"
+checksum = "07b6912165aa416d54f977c04f9c12aabaf9301c3e49e0a136ffc92a37310a0c"
 dependencies = [
  "enum-as-inner",
  "is-tree-macro",
@@ -1236,6 +1236,7 @@ version = "0.1.18"
 dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
+ "is-tree",
  "ligen-generator",
  "ligen-ir",
  "sha2 0.10.8",

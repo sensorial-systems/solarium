@@ -1,6 +1,11 @@
 use solarium::prelude::*;
 use solana_program::msg;
 
+#[account]
+pub struct Account {
+    pub value: u64
+}
+
 #[program]
 impl HelloWorld {
     pub fn process_instruction(
