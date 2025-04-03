@@ -1,13 +1,10 @@
 mod program_id_macro;
 mod program_macro;
-mod account_macro;
 mod declare_id;
 mod discriminator_macro;
 
-use ligen_parser::Parser;
-use ligen_rust_parser::StructureParser;
-
 use proc_macro::TokenStream;
+use quote::quote;
 use syn::{parse_macro_input, LitStr};
 
 #[proc_macro]
@@ -45,8 +42,9 @@ pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn account(_args: TokenStream, input: TokenStream) -> TokenStream {
-    let parser = StructureParser::new();
-    let structure = parser.parse(input.clone(), &ligen_parser::ParserConfig::default()).expect("Failed to parse account");
-    account_macro::process(structure).expect("Failed to generate account");
-    input
+    let input = proc_macro2::TokenStream::from(input);
+    quote! {
+        #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+        #input
+    }.into()
 }
