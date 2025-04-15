@@ -1307,6 +1307,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ligen-rust-generator"
+version = "0.1.18"
+dependencies = [
+ "anyhow",
+ "ligen-generator",
+ "ligen-ir",
+ "proc-macro2",
+ "syn 2.0.98",
+]
+
+[[package]]
 name = "ligen-rust-parser"
 version = "0.1.0"
 dependencies = [
@@ -2235,10 +2246,10 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
- "ligen-anchor-generator",
  "ligen-generator",
  "ligen-ir",
  "ligen-parser",
+ "ligen-rust-generator",
  "ligen-rust-parser",
  "proc-macro2",
  "quote",

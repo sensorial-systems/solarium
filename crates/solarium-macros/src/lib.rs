@@ -44,7 +44,8 @@ pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn account(_args: TokenStream, input: TokenStream) -> TokenStream {
     let input = proc_macro2::TokenStream::from(input);
     quote! {
-        #[derive(borsh::BorshSerialize, borsh::BorshDeserialize)]
+        #[derive(solarium::prelude::borsh::BorshSerialize, solarium::prelude::borsh::BorshDeserialize)]
+        #[borsh(crate = "solarium::prelude::borsh")]
         #input
     }.into()
 }
