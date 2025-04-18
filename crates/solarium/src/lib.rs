@@ -8,11 +8,13 @@ mod program;
 mod pda;
 mod space;
 mod account_initialization;
+mod account_update;
 mod owner;
 mod context;
 
 pub use account::*;
 pub use account_initialization::*;
+pub use account_update::*;
 pub use signer::*;
 pub use program::*;
 pub use check::*;

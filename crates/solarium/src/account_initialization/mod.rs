@@ -7,35 +7,31 @@ use solana_program::sysvar::Sysvar;
 use crate::{prelude::*, Owner, Pda, Space};
 use crate::{Signer, Account, Program};
 
-pub trait AccountInitialization {
+pub trait AccountInitialization: Default + Space + Pda + Owner + BorshSerialize {
     fn initialize<'a>(
         account: &mut Account<'a>,
         payer: &Signer<'a>,
         sysvar_rent: &Account<'a>,
         system_program: &Program<'a>
-    ) -> Result<()>;
-}
-
-impl<T: Default + Space + Pda + Owner + BorshSerialize> AccountInitialization for T {
-    fn initialize<'a>(account: &mut Account<'a>, payer: &Signer<'a>, sysvar_rent: &Account<'a>, system_program: &Program<'a>) -> Result<()> {
-        let account_data = T::default();
+    ) -> Result<()> {
+        let account_data = Self::default();
         let account_data = crate::prelude::borsh::to_vec(&account_data).unwrap();
 
-        let (account_pda, bump_seed) = Pubkey::find_program_address(T::seeds(), T::owner());
+        let (account_pda, bump_seed) = Pubkey::find_program_address(Self::seeds(), Self::owner());
         let rent = Rent::from_account_info(sysvar_rent.info)?;
-        let data_size = T::space();
+        let data_size = Self::space();
         let rent_amount = rent.minimum_balance(data_size);
         let instruction = solana_program::system_instruction::create_account(
             &payer.info.signer_key().unwrap(),
             &account_pda,
             rent_amount,
             data_size as u64,
-            T::owner(),
+            Self::owner(),
         );
 
         let bump_seed = [bump_seed];
-        let mut seeds = Vec::with_capacity(T::seeds().len() + 1);
-        seeds.extend_from_slice(T::seeds());
+        let mut seeds = Vec::with_capacity(Self::seeds().len() + 1);
+        seeds.extend_from_slice(Self::seeds());
         seeds.push(&bump_seed);
     
         invoke_signed(

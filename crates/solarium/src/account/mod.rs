@@ -1,4 +1,5 @@
-use crate::prelude::*;
+use crate::{prelude::*, AccountUpdate};
+use borsh::BorshSerialize;
 use solana_program::account_info::AccountInfo;
 
 #[derive(Clone)]
@@ -19,5 +20,14 @@ impl<'a, T: borsh::BorshDeserialize> TryFrom<&'a AccountInfo<'a>> for Account<'a
             borsh::BorshDeserialize::deserialize(data)?
         };
         Ok(Self { data, info })
+    }
+}
+
+impl<'a, T: BorshSerialize> AccountUpdate for &mut Account<'a, T> {
+    fn update(self) -> Result<()> {
+        let mut data = self.info.try_borrow_mut_data().unwrap();
+        let serialize_data = crate::prelude::borsh::to_vec(&self.data).unwrap();
+        data[..serialize_data.len()].copy_from_slice(&serialize_data);
+        Ok(())
     }
 }
