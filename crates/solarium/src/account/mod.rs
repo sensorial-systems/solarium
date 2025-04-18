@@ -1,33 +1,30 @@
-use crate::{prelude::*, AccountUpdate};
-use borsh::BorshSerialize;
+use crate::{prelude::*, Guard};
 use solana_program::account_info::AccountInfo;
 
 #[derive(Clone)]
 pub struct Account<'a, T = ()> {
-    /// The account data.
-    pub data: T,
     /// The account info.
     pub info: &'a AccountInfo<'a>,
+    phantom: std::marker::PhantomData<T>,
 }
 
-impl<'a, T: borsh::BorshDeserialize> TryFrom<&'a AccountInfo<'a>> for Account<'a, T> {
-    type Error = Error;
-
-    fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
+impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> for &mut Account<'a, T> {
+    fn data(self) -> Result<Guard<'a, T>> {
         let data: T = {
-            let data = info.try_borrow_mut_data()?;
+            let data = self.info.try_borrow_mut_data()?;
             let data = &mut &data[..];
             borsh::BorshDeserialize::deserialize(data)?
         };
-        Ok(Self { data, info })
+        
+        Ok(Guard { account: self.info, data })
     }
 }
 
-impl<'a, T: BorshSerialize> AccountUpdate for &mut Account<'a, T> {
-    fn update(self) -> Result<()> {
-        let mut data = self.info.try_borrow_mut_data().unwrap();
-        let serialize_data = crate::prelude::borsh::to_vec(&self.data).unwrap();
-        data[..serialize_data.len()].copy_from_slice(&serialize_data);
-        Ok(())
+impl<'a, T> TryFrom<&'a AccountInfo<'a>> for Account<'a, T> {
+    type Error = Error;
+
+    fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
+        let phantom = Default::default();
+        Ok(Self { info, phantom })
     }
 }
