@@ -14,6 +14,10 @@ pub trait AccountInitialization: Default + Space + Pda + Owner + BorshSerialize 
         sysvar_rent: &Account<'a>,
         system_program: &Program<'a>
     ) -> Result<()> {
+        if account.info.lamports() > 0 {
+            return Ok(());
+        }
+
         let account_data = Self::default();
         let account_data = crate::prelude::borsh::to_vec(&account_data).unwrap();
 
