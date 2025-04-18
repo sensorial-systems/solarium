@@ -20,7 +20,6 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
     };
 
     Ok(quote! {
-        pub struct #program_name;
         #program_impl
 
         ::solarium::prelude::declare_id!(::solarium::current_program_id!());
@@ -31,7 +30,8 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
             accounts: &'a [solarium::prelude::solana_program::account_info::AccountInfo<'a>], // Data accounts, payer, etc.
             instruction_data: &[u8],  // External data passed to program
         ) -> solarium::prelude::solana_program::entrypoint::ProgramResult {
-            #program_name.process_instruction(program_id, accounts, instruction_data)
+            let program = #program_name;
+            program.process_instruction(program_id, accounts, instruction_data)
         }
     })
 }

@@ -4,7 +4,9 @@ use ligen_ir::Identifier;
 use ligen_rust_generator::{RustIdentifierGenerator, RustTypeGenerator};
 use quote::quote;
 
+#[allow(non_snake_case)]
 pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -> Result<proc_macro2::TokenStream> {
+    let program_name = program_impl.self_ty.clone();
     let config = Default::default();
     let identifier_generator = RustIdentifierGenerator::default();
     let type_generator = RustTypeGenerator::default();
@@ -18,34 +20,32 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -
     let mut instructions_parameters = Vec::new();
     let mut calls = Vec::new();
     for method in &input.methods {
-        let method_name = &method.identifier;
-        let snake_case_name = identifier_generator.generate(&method_name.to_snake_case(), &config)?;
-        let pascal_case_name = identifier_generator.generate(&method_name.to_pascal_case(), &config)?;
-        let screaming_case_name = identifier_generator.generate(&method_name.to_screaming_snake_case(), &config)?;
-        let namespace = format!("global:{}", method_name);
-        let parameter_structure = identifier_generator.generate(&Identifier::from(format!("{}{}", input.identifier.to_string(), method_name.to_pascal_case())), &config)?;
-        constants.push(quote! { pub const #screaming_case_name: u64 = u64::from_le_bytes(solarium::discriminator!(#namespace)); });
-        variants.push(quote! { #pascal_case_name(#parameter_structure) });
+        let identifier = &method.identifier;
+        let MethodName = identifier_generator.generate(&identifier.to_pascal_case(), &config)?;
+        let METHOD_NAME = identifier_generator.generate(&identifier.to_screaming_snake_case(), &config)?;
+        let method_name = identifier_generator.generate(&identifier.to_snake_case(), &config)?;
+        let namespace = format!("global:{}", identifier);
+        let parameter_structure = identifier_generator.generate(&Identifier::from(format!("{}{}", input.identifier.to_string(), identifier.to_pascal_case())), &config)?;
+        constants.push(quote! { pub const #METHOD_NAME: u64 = u64::from_le_bytes(solarium::discriminator!(#namespace)); });
+        variants.push(quote! { #MethodName(#parameter_structure) });
         deserializers.push(quote! {
-            Self::#screaming_case_name => Ok(Self::#pascal_case_name(#parameter_structure::deserialize_reader(reader)?))
+            Self::#METHOD_NAME => Ok(Self::#MethodName(#parameter_structure::deserialize_reader(reader)?))
         });
         serializers.push(quote! {
-            Self::#pascal_case_name(value) => {
-                Self::#screaming_case_name.serialize(writer)?;
+            Self::#MethodName(value) => {
+                Self::#METHOD_NAME.serialize(writer)?;
                 value.serialize(writer)
             }
         });
 
         let mut inputs = Vec::new();
         let mut arguments = Vec::new();
-        let mut accounts: usize = 0;
         for input in &method.inputs {
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
                 let type_ = type_generator.generate(&input.type_, &config)?;
                 arguments.push(quote! {
-                    #type_::try_from(&accounts[#accounts])?
+                    #type_::try_from(solarium::prelude::solana_program::account_info::next_account_info(accounts)?)?
                 });
-                accounts += 1;
             } else {
                 let input_name = identifier_generator.generate(&input.identifier, &config)?;
                 let input_type = type_generator.generate(&input.type_, &config)?;
@@ -67,8 +67,8 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -
         });
 
         calls.push(quote! {
-            #instruction_name::#pascal_case_name(arguments) => {
-                self.#snake_case_name(#(#arguments),*)?;
+            #instruction_name::#MethodName(arguments) => {
+                self.#method_name(#(#arguments),*)?;
             }
         });
     }
@@ -120,12 +120,17 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -
             instruction_data: &[u8],
         ) -> Result<()> {
             check_id(program_id).then_some(()).ok_or(solarium::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
-            match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| ProgramError::InvalidInstructionData)? {
+            let accounts = &mut accounts.iter();
+            match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
                 #(#calls),*
             }
             Ok(())
         }
     ));
+
+    let program_definition = quote! {
+        pub struct #program_name;
+    };
 
     let output = quote! {
         #instruction_parameters
@@ -133,6 +138,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -
         #constants
         #deserialize
         #serialize
+        #program_definition
         #program_impl
     };
     Ok(output)
