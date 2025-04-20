@@ -1,3 +1,6 @@
+#[cfg(feature = "client")]
+pub mod client;
+
 pub mod prelude;
 pub mod result;
 mod instruction;

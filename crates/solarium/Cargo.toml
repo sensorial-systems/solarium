@@ -7,8 +7,13 @@ description.workspace = true
 license.workspace = true
 authors.workspace = true
 
+[features]
+program = []
+client = [ "solana-sdk" ]
+
 [dependencies]
 solarium-macros.workspace = true
 solana-program.workspace = true
+solana-sdk = { workspace = true, optional = true }
 sha2.workspace = true
 borsh.workspace = true
