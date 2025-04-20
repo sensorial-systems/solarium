@@ -21,8 +21,8 @@ solarium = { version = "0.1.0", path = "crates/solarium" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
 
-solana-sdk = "=1.18.26"
-solana-program = "=1.18.26"
+solana-sdk = "=2.1.0"
+solana-program = "=2.1.0"
 anchor-lang-idl-spec = "0.1.0"
 
 tokio = { version = "1", features = ["full"] }
