@@ -1,6 +1,7 @@
-use crate::{prelude::*, Guard};
+use crate::prelude::*;
 use borsh::{BorshSerialize, BorshDeserialize};
 
 pub trait DataAccess<'a, T: BorshSerialize + BorshDeserialize> {
-    fn data(self) -> Result<Guard<'a, T>>;
+    type Output;
+    fn data(self) -> Self::Output;
 }

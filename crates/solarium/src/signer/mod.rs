@@ -13,7 +13,7 @@ impl<'a> TryFrom<&'a AccountInfo<'a>> for Signer<'a> {
 
     fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
         if !info.is_signer {
-            return Err(ProgramError::MissingRequiredSignature);
+            return Err(ProgramError::MissingRequiredSignature.into());
         }
         Ok(Self { info })
     }
@@ -24,7 +24,7 @@ impl<'a> Check for Signer<'a> {
         if self.info.is_signer {
             Ok(())
         } else {
-            Err(ProgramError::MissingRequiredSignature)
+            Err(ProgramError::MissingRequiredSignature.into())
         }
     }
 }

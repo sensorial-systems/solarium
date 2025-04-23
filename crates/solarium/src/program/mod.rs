@@ -13,7 +13,7 @@ impl<'a> TryFrom<&'a AccountInfo<'a>> for Program<'a> {
         if info.executable {
             Ok(Self { info })
         } else {
-            Err(ProgramError::InvalidAccountData)
+            Err(ProgramError::InvalidAccountData.into())
         }
     }
 }

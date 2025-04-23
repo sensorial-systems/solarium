@@ -31,7 +31,7 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
             instruction_data: &[u8],  // External data passed to program
         ) -> solarium::prelude::solana_program::entrypoint::ProgramResult {
             let program = #program_name;
-            program.process_instruction(program_id, accounts, instruction_data)
+            Ok(program.process_instruction(program_id, accounts, instruction_data)?)
         }
     })
 }

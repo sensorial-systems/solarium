@@ -9,11 +9,17 @@ authors.workspace = true
 
 [features]
 program = []
-client = [ "solana-sdk" ]
+client = [ "tokio", "solana-sdk", "solana-client", "solana-account-decoder-client-types", "futures" ]
 
 [dependencies]
 solarium-macros.workspace = true
 solana-program.workspace = true
 solana-sdk = { workspace = true, optional = true }
+solana-client = { workspace = true, optional = true }
+solana-account-decoder-client-types = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 sha2.workspace = true
 borsh.workspace = true
+shrinkwraprs.workspace = true
+thiserror.workspace = true

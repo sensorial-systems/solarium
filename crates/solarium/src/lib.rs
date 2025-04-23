@@ -1,6 +1,3 @@
-#[cfg(feature = "client")]
-pub mod client;
-
 pub mod prelude;
 pub mod result;
 mod instruction;
@@ -31,3 +28,9 @@ pub use owner::*;
 pub use solarium_macros::*;
 pub use instruction::*;
 pub use context::*;
+
+#[cfg(feature = "client")]
+pub mod client;
+
+#[cfg(feature = "client")]
+pub mod test;
