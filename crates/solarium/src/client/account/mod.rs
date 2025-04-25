@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use borsh::BorshDeserialize;
+use solana_sdk::commitment_config::CommitmentConfig;
 use crate::client::{Connection, Subscription};
 
 pub struct Account<T> {
@@ -37,6 +38,12 @@ impl<T> Account<T> {
     pub async fn subscribe(&self) -> Result<Subscription<T>>
     where T: BorshDeserialize
     {
-        Ok(Subscription::connect(&self.connection, self.address).await?)
+        self.subscribe_with_commitment(CommitmentConfig::finalized()).await
+    }
+
+    pub async fn subscribe_with_commitment(&self, commitment: CommitmentConfig) -> Result<Subscription<T>>
+    where T: BorshDeserialize
+    {
+        Ok(Subscription::account(&self.connection, self.address, Some(commitment)).await?)
     }
 }
