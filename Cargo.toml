@@ -43,9 +43,7 @@ thiserror = "2.0.12"
 
 bytemuck_derive = "=1.8.1"
 
-ligen-ir = { path = "../ligen/ligen/ir" }
-ligen-parser = { path = "../ligen/ligen/parser" }
-ligen-generator = { path = "../ligen/ligen/generator" }
+ligen = { path = "../ligen/ligen" }
 ligen-rust-parser = { path = "../ligen/ecosystem/rust/parser" }
 ligen-rust-generator = { path = "../ligen/ecosystem/rust/generator" }
 ligen-anchor-parser = { path = "../ligen/ecosystem/anchor/parser" }

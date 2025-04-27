@@ -1,16 +1,15 @@
 use ligen_anchor_generator::AnchorGenerator;
-use ligen_parser::{Parser, ParserConfig};
-use ligen_generator::{Generator, GeneratorConfig};
-use ligen_ir::Identifier;
+use ligen::prelude::*;
+use ligen::ir::Identifier;
 use ligen_rust_parser::library::RustLibraryParser;
 
-use crate::prelude::*;
+use crate::prelude::{*, Result};
 use crate::Program;
 use crate::Workspace;
 
 #[derive(Debug)]
 pub struct Idl {
-    pub idl: ligen_ir::Library
+    pub idl: ligen::ir::Library
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -27,7 +26,7 @@ impl Idl {
             }
             IdlType::Anchor => {
                 let generator = AnchorGenerator::new();
-                let idl = generator.generate(&self.idl, &GeneratorConfig::default())?;
+                let idl = generator.generate(&self.idl, &Config::default())?;
                 let idl_path = workspace.root.join("target").join("idl");
                 std::fs::create_dir_all(&idl_path).context("Failed to create IDL directory")?;
                 let name = Identifier::from(idl.metadata.name.clone()).to_snake_case();
@@ -46,9 +45,9 @@ impl Idl {
 impl TryFrom<&Program> for Idl {
     type Error = anyhow::Error;
 
-    fn try_from(program: &Program) -> Result<Self, Self::Error> {
+    fn try_from(program: &Program) -> Result<Self> {
         let parser = RustLibraryParser::new();
-        let mut idl = parser.parse(&program.folder, &ParserConfig::default())?;
+        let mut idl = parser.transform(&program.folder, &Config::default())?;
         idl.metadata.table.insert("address".to_string(), program.public_key.to_string());
         Ok(Idl { idl })
     }

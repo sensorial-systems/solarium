@@ -11,9 +11,7 @@ authors.workspace = true
 solana-sdk.workspace = true
 anyhow.workspace = true
 
-ligen-ir.workspace = true
-ligen-parser.workspace = true
-ligen-generator.workspace = true
+ligen.workspace = true
 ligen-rust-parser.workspace = true
 ligen-anchor-parser.workspace = true
 ligen-anchor-generator.workspace = true

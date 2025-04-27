@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::{prelude::*, IdlType};
-use ligen_ir::Identifier;
+use ligen::ir::Identifier;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::{EncodableKey, Signer};

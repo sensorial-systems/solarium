@@ -1,11 +1,11 @@
 use anyhow::Result;
-use ligen_generator::Generator;
-use ligen_ir::Identifier;
+use ligen::generator::Generator;
+use ligen::ir::Identifier;
 use ligen_rust_generator::{RustIdentifierGenerator, RustTypeGenerator};
 use quote::quote;
 
 #[allow(non_snake_case)]
-pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen_ir::Interface) -> Result<proc_macro2::TokenStream> {
+pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) -> Result<proc_macro2::TokenStream> {
     let program_name = program_impl.self_ty.clone();
     let config = Default::default();
     let identifier_generator = RustIdentifierGenerator::default();

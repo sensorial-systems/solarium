@@ -4,8 +4,8 @@ mod declare_id;
 mod discriminator_macro;
 mod account_macro;
 
-use ligen_parser::{universal::attributes::AttributesParser, Parser};
-use ligen_rust_parser::literal::LiteralParser;
+use ligen::parser::Parser;
+use ligen_rust_parser::macro_attributes::attributes::AttributesParser;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
 
@@ -45,7 +45,7 @@ pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn account(args: TokenStream, input: TokenStream) -> TokenStream {
     let config = Default::default();
-    let attributes = AttributesParser::<LiteralParser>::default().parse(args.to_string(), &config).expect("Failed to parse attributes");
+    let attributes = AttributesParser::default().parse(args.to_string(), &config).expect("Failed to parse attributes");
     let input = syn::parse_macro_input!(input as syn::ItemStruct);
     account_macro::process(input, attributes).expect("Failed to generate account").into()
 }
