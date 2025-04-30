@@ -33,7 +33,7 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         let account_data = T::default();
         let account_data = crate::prelude::borsh::to_vec(&account_data).unwrap();
 
-        let (account_pda, bump_seed) = Pubkey::find_program_address(seeds, S::program());
+        let (account_pda, bump_seed) = Pubkey::find_program_address(seeds, T::owner());
         let rent = Rent::get()?;
         let data_size = T::space();
         let rent_amount = rent.minimum_balance(data_size);

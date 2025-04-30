@@ -23,7 +23,7 @@ impl<T> Account<T> {
     pub fn pda<S: Seeds>(connection: &Connection, seeds: S) -> Self
     where T: Owner
     {
-        let address = Pubkey::find_program_address(seeds.seeds().iter().map(|s| s.as_slice()).collect::<Vec<_>>().as_slice(), S::program()).0;
+        let address = Pubkey::find_program_address(seeds.seeds().iter().map(|s| s.as_slice()).collect::<Vec<_>>().as_slice(), T::owner()).0;
         Self::new(address, connection)
     }
 
