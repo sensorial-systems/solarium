@@ -7,27 +7,33 @@ use crate::prelude::*;
 use crate::{Signer, Account, Program};
 
 pub trait AccountInitialization<'a, T> {
-    fn initialize(
+    fn initialize<S: Seeds>(
         self,
         payer: &Signer<'a>,
+        seeds: S,
         system_program: &Program<'a>
     ) -> Result<()>;
 }
 
 impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T> {
-    fn initialize(
+    fn initialize<S: Seeds>(
         self,
         payer: &Signer<'a>,
+        seeds: S,
         system_program: &Program<'a>
     ) -> Result<()> {
         if self.info.lamports() > 0 {
             return Ok(());
         }
 
+        let seeds = seeds.seeds();
+        let seeds = seeds.iter().map(|s| s.as_slice()).collect::<Vec<_>>();
+        let seeds = seeds.as_slice();
+
         let account_data = T::default();
         let account_data = crate::prelude::borsh::to_vec(&account_data).unwrap();
 
-        let (account_pda, bump_seed) = Pubkey::find_program_address(T::seeds(), T::owner());
+        let (account_pda, bump_seed) = Pubkey::find_program_address(seeds, S::program());
         let rent = Rent::get()?;
         let data_size = T::space();
         let rent_amount = rent.minimum_balance(data_size);
@@ -40,14 +46,14 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         );
 
         let bump_seed = [bump_seed];
-        let mut seeds = Vec::with_capacity(T::seeds().len() + 1);
-        seeds.extend_from_slice(T::seeds());
-        seeds.push(&bump_seed);
+        let mut seeds_data = Vec::with_capacity(seeds.len() + 1);
+        seeds_data.extend_from_slice(seeds);
+        seeds_data.push(&bump_seed);
     
         invoke_signed(
             &instruction,
             &[payer.info.clone(), self.info.clone(), system_program.info.clone()],
-            &[seeds.as_slice()],
+            &[seeds_data.as_slice()],
         )?;
 
         let mut data = self.info.try_borrow_mut_data().unwrap();
