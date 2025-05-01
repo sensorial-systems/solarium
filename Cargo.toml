@@ -27,6 +27,8 @@ solana-client = "=2.1.0"
 solana-account-decoder-client-types = "=2.1.0"
 anchor-lang-idl-spec = "0.1.0"
 
+async-trait = "0.1.88"
+
 futures = "0.3"
 
 tokio = { version = "1", features = ["full"] }

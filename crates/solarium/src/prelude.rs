@@ -7,3 +7,6 @@ pub use crate::{Seeds, Space, Owner, AccountInitialization, Initialization, Data
 pub use solana_program::pubkey::Pubkey;
 
 pub(crate) use borsh::BorshSerialize;
+
+#[cfg(feature = "client")]
+pub use async_trait::async_trait;

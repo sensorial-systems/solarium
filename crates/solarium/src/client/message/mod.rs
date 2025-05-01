@@ -10,4 +10,8 @@ impl Message {
         let instructions = instructions.into();
         Self { instructions }
     }
+
+    pub fn instructions(&self) -> &[Instruction] {
+        &self.instructions
+    }
 }
