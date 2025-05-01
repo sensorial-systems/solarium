@@ -10,3 +10,6 @@ pub(crate) use borsh::BorshSerialize;
 
 #[cfg(feature = "client")]
 pub use async_trait::async_trait;
+
+#[cfg(feature = "client")]
+pub use solana_sdk;
