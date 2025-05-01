@@ -112,33 +112,45 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
         }
     };
 
-    program_impl.items.push(syn::parse_quote!(
-        pub fn process_instruction<'a>(
-            &self,
-            program_id: &solarium::prelude::solana_program::pubkey::Pubkey,
-            accounts: &'a [solarium::prelude::solana_program::account_info::AccountInfo<'a>],
-            instruction_data: &[u8],
-        ) -> Result<()> {
-            check_id(program_id).then_some(()).ok_or(solarium::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
-            let accounts = &mut accounts.iter();
-            match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
-                #(#calls),*
+    let process_instruction = quote! {
+        impl #program_name {
+            pub fn process_instruction<'a>(
+                &self,
+                program_id: &solarium::prelude::solana_program::pubkey::Pubkey,
+                accounts: &'a [solarium::prelude::solana_program::account_info::AccountInfo<'a>],
+                instruction_data: &[u8],
+            ) -> Result<()> {
+                check_id(program_id).then_some(()).ok_or(solarium::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
+                let accounts = &mut accounts.iter();
+                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
+                    #(#calls),*
+                }
+                Ok(())
             }
-            Ok(())
         }
-    ));
+    };
 
     let program_definition = quote! {
+        #[cfg(feature = "program")]
         pub struct #program_name;
     };
 
     let output = quote! {
+        #[cfg(feature = "program")]
         #instruction_parameters
+        #[cfg(feature = "program")]
         #instruction_enum
+        #[cfg(feature = "program")]
         #constants
+        #[cfg(feature = "program")]
         #deserialize
+        #[cfg(feature = "program")]
         #serialize
+        #[cfg(feature = "program")]
         #program_definition
+        #[cfg(feature = "program")]
+        #process_instruction
+
         #program_impl
     };
     Ok(output)
