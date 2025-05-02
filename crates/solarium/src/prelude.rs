@@ -12,4 +12,12 @@ pub(crate) use borsh::BorshSerialize;
 pub use async_trait::async_trait;
 
 #[cfg(feature = "client")]
-pub use solana_sdk;
+pub use solana_sdk::{
+    self,
+    commitment_config::CommitmentConfig,
+    native_token::LAMPORTS_PER_SOL,
+    signer::Signer,
+};
+
+#[cfg(feature = "client")]
+pub use futures::StreamExt;

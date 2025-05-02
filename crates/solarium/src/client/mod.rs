@@ -15,3 +15,5 @@ pub use message::Message;
 pub use message_builder::MessageBuilder;
 pub use subscription::Subscription;
 pub use program::Program;
+
+pub use solana_sdk::signature::Keypair;
