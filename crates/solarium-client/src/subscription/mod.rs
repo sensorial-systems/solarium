@@ -1,9 +1,9 @@
 use std::pin::Pin;
 
 use crate::prelude::*;
-use crate::client::Connection;
+use crate::Connection;
 
-use crate::prelude::borsh::BorshDeserialize;
+use borsh::BorshDeserialize;
 use futures::future::BoxFuture;
 use futures::{Stream, StreamExt};
 use shrinkwraprs::Shrinkwrap;

@@ -5,7 +5,9 @@ members = [
     "crates/solarium-macros",
     "crates/solarium-cli",
     "crates/solarium-workspace",
-    "examples/hello-world"
+    "crates/solarium-client",
+    "crates/solarium-program",
+    "examples/hello-world",
 ]
 
 [workspace.package]
@@ -21,6 +23,7 @@ solarium = { version = "0.1.0", path = "crates/solarium" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
 
+solana-pubkey = "=2.1.0"
 solana-sdk = "=2.1.0"
 solana-program = "=2.1.0"
 solana-client = "=2.1.0"

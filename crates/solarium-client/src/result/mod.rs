@@ -1,7 +1,6 @@
 pub type Result<T> = std::result::Result<T, Error>;
 
 
-#[cfg(feature = "client")]
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Program error: {0}")]
@@ -14,29 +13,18 @@ pub enum Error {
     IoError(std::io::Error),
 }
 
-#[cfg(not(feature = "client"))]
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("Program error: {0}")]
-    ProgramError(solana_program::program_error::ProgramError),
-    #[error("IO error: {0}")]
-    IoError(std::io::Error),
-}
-
 impl From<solana_program::program_error::ProgramError> for Error {
     fn from(error: solana_program::program_error::ProgramError) -> Self {
         Error::ProgramError(error)
     }
 }
 
-#[cfg(feature = "client")]
 impl From<solana_client::client_error::ClientError> for Error {
     fn from(error: solana_client::client_error::ClientError) -> Self {
         Error::ClientError(error)
     }
 }
 
-#[cfg(feature = "client")]
 impl From<solana_client::pubsub_client::PubsubClientError> for Error {
     fn from(error: solana_client::pubsub_client::PubsubClientError) -> Self {
         Error::SubscriptionError(error)
@@ -54,9 +42,7 @@ impl From<Error> for solana_program::program_error::ProgramError {
         match error {
             Error::ProgramError(error) => error,
             Error::IoError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            #[cfg(feature = "client")]
             Error::ClientError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            #[cfg(feature = "client")]
             Error::SubscriptionError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
         }
     }

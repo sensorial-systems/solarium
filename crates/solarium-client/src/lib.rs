@@ -1,3 +1,6 @@
+pub mod prelude;
+pub mod result;
+
 mod account;
 mod connection;
 mod sendable;
@@ -6,6 +9,7 @@ mod message;
 mod message_builder;
 mod subscription;
 mod program;
+pub mod utils;
 
 pub use connection::Connection;
 pub use account::Account;
@@ -17,3 +21,6 @@ pub use subscription::Subscription;
 pub use program::Program;
 
 pub use solana_sdk::signature::Keypair;
+pub use solarium::Instruction;
+
+pub use solarium::*;

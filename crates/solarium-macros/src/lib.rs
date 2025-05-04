@@ -3,6 +3,7 @@ mod program_macro;
 mod declare_id;
 mod discriminator_macro;
 mod account_macro;
+mod generate_client_macro;
 
 use ligen::parser::Parser;
 use ligen_rust_parser::macro_attributes::attributes::AttributesParser;
@@ -34,6 +35,11 @@ pub fn discriminator(input: TokenStream) -> TokenStream {
     let discriminator = parse_macro_input!(input as LitStr);
     let discriminator = discriminator.value();
     discriminator_macro::process(&discriminator).expect("Failed to generate discriminator").into()
+}
+
+#[proc_macro]
+pub fn generate_client(input: TokenStream) -> TokenStream {
+    generate_client_macro::process(input).expect("Failed to generate client").into()
 }
 
 #[proc_macro_attribute]

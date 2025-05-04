@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::client::Sendable;
+use crate::Sendable;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, signature::Signature, signers::Signers, transaction::Transaction};
 use shrinkwraprs::Shrinkwrap;

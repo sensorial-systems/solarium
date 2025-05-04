@@ -9,7 +9,7 @@ pub fn process(program_name: &str) -> Result<TokenStream> {
     let program_id = program_id.to_bytes();
 
     let expanded = quote! {
-        ::solarium::prelude::solana_program::pubkey::Pubkey::new_from_array([
+        solarium::prelude::Pubkey::new_from_array([
             #(#program_id),*
         ])
     };

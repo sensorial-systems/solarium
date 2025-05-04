@@ -2845,9 +2845,9 @@ dependencies = [
 
 [[package]]
 name = "quinn-udp"
-version = "0.5.11"
+version = "0.5.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "541d0f57c6ec747a90738a52741d3221f7960e8ac2f0ff4b1a63680e033b4ab5"
+checksum = "ee4e529991f949c5e25755532370b8af5d114acae52326361d68d47af64aa842"
 dependencies = [
  "cfg_aliases",
  "libc",
@@ -3200,9 +3200,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-platform-verifier"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a5467026f437b4cb2a533865eaa73eb840019a0916f4b9ec563c6e617e086c9"
+checksum = "4937d110d34408e9e5ad30ba0b0ca3b6a8a390f8db3636db60144ac4fa792750"
 dependencies = [
  "core-foundation 0.10.0",
  "core-foundation-sys",
@@ -4796,18 +4796,11 @@ dependencies = [
 name = "solarium"
 version = "0.1.0"
 dependencies = [
- "async-trait",
  "borsh 1.5.7",
- "futures",
  "sha2 0.10.8",
- "shrinkwraprs",
- "solana-account-decoder-client-types",
- "solana-client",
  "solana-program",
- "solana-sdk",
+ "solana-pubkey",
  "solarium-macros",
- "thiserror 2.0.12",
- "tokio",
 ]
 
 [[package]]
@@ -4818,6 +4811,22 @@ dependencies = [
  "bytemuck_derive",
  "clap",
  "solarium-workspace",
+ "tokio",
+]
+
+[[package]]
+name = "solarium-client"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "shrinkwraprs",
+ "solana-account-decoder-client-types",
+ "solana-client",
+ "solana-program",
+ "solana-sdk",
+ "solarium",
+ "thiserror 2.0.12",
  "tokio",
 ]
 
@@ -4836,6 +4845,16 @@ dependencies = [
  "sha2 0.10.8",
  "solarium-workspace",
  "syn 2.0.98",
+]
+
+[[package]]
+name = "solarium-program"
+version = "0.1.0"
+dependencies = [
+ "shrinkwraprs",
+ "solana-program",
+ "solarium",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -5138,9 +5157,9 @@ dependencies = [
 
 [[package]]
 name = "synstructure"
-version = "0.13.1"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
+checksum = "728a70f3dbaf5bab7f0c4b1ac8d7ae5ea60a4b5549c8a5914361c99147a709d2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5340,9 +5359,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.14"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
+checksum = "66a539a9ad6d5d281510d5bd368c973d636c02dbf8a67300bfb6b950696ad7df"
 dependencies = [
  "bytes",
  "futures-core",
@@ -5698,9 +5717,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-root-certs"
-version = "0.26.8"
+version = "0.26.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09aed61f5e8d2c18344b3faa33a4c837855fe56642757754775548fee21386c4"
+checksum = "c99403924bc5f23afefc319b8ac67ed0e50669f6e52a413314cccb1fdbc93ba0"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -6109,7 +6128,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
- "synstructure 0.13.1",
+ "synstructure 0.13.2",
 ]
 
 [[package]]
@@ -6151,7 +6170,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
- "synstructure 0.13.1",
+ "synstructure 0.13.2",
 ]
 
 [[package]]

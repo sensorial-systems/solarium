@@ -1,10 +1,10 @@
+use crate::prelude::*;
+use crate::{Signer, Account, Program};
+
 use solana_program::program::invoke_signed;
 use solana_program::pubkey::Pubkey;
 use solana_program::rent::Rent;
 use solana_program::sysvar::Sysvar;
-
-use crate::prelude::*;
-use crate::{Signer, Account, Program};
 
 pub trait AccountInitialization<'a, T> {
     fn initialize<S: Seeds>(

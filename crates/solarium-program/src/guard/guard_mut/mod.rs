@@ -1,5 +1,6 @@
+use crate::prelude::*;
+
 use solana_program::account_info::AccountInfo;
-use borsh::BorshSerialize;
 
 pub struct GuardMut<'a, T: BorshSerialize> {
     pub account: &'a AccountInfo<'a>,

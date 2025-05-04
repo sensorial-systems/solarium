@@ -116,7 +116,6 @@ impl Workspace {
         let child = self.dev().await?;
         let output = tokio::process::Command::new("cargo")
             .arg("test")
-            .args(["--features", "client"])
             .arg("--")
             .arg("--nocapture")
             .status()
@@ -133,7 +132,6 @@ impl Workspace {
     pub async fn build(&self) -> Result<()> {
         let status = tokio::process::Command::new("cargo")
         .arg("build-sbf")
-        .args(["--features", "program"])
         .status()
         .await
         .context("failed to run cargo build")?;

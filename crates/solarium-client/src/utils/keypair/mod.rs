@@ -1,7 +1,7 @@
 use std::future::Future;
 
 use crate::prelude::*;
-use crate::client::Connection;
+use crate::Connection;
 use solana_sdk::{signature::Keypair, signer::Signer};
 
 pub trait KeypairExt {

@@ -1,7 +1,5 @@
 use crate::prelude::*;
-use borsh::BorshDeserialize;
-use solana_sdk::commitment_config::CommitmentConfig;
-use crate::client::{Connection, Subscription};
+use crate::{Connection, Subscription};
 
 pub struct Account<T> {
     address: Pubkey,

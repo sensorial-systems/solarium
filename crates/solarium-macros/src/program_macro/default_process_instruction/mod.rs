@@ -131,24 +131,16 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
     };
 
     let program_definition = quote! {
-        #[cfg(feature = "program")]
         pub struct #program_name;
     };
 
     let output = quote! {
-        #[cfg(feature = "program")]
         #instruction_parameters
-        #[cfg(feature = "program")]
         #instruction_enum
-        #[cfg(feature = "program")]
         #constants
-        #[cfg(feature = "program")]
         #deserialize
-        #[cfg(feature = "program")]
         #serialize
-        #[cfg(feature = "program")]
         #program_definition
-        #[cfg(feature = "program")]
         #process_instruction
 
         #program_impl

@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::client::{Connection, Message};
+use crate::{Connection, Message};
 
 use solana_sdk::signature::Signature;
 use solana_sdk::signers::Signers;
@@ -12,7 +12,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    pub fn new<T: Signers + ?Sized>(connection: &Connection, message: Message, payer: Option<&Pubkey>, signers: &T, blockhash: Hash) -> Self {
+    pub fn new<T: Signers + ?Sized>(connection: &Connection, message: &Message, payer: Option<&Pubkey>, signers: &T, blockhash: Hash) -> Self {
         let connection = connection.clone();
         let transaction = solana_sdk::transaction::Transaction::new_signed_with_payer(&message.instructions, payer, signers, blockhash);
         Self { connection, transaction }

@@ -1,4 +1,4 @@
-use solana_program::pubkey::Pubkey;
+use crate::prelude::*;
 
 pub trait Owner {
     fn owner() -> &'static Pubkey;
