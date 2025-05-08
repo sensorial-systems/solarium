@@ -30,6 +30,9 @@ pub fn process(input: proc_macro::TokenStream) -> Result<proc_macro2::TokenStrea
     let program_name = &input.literal;
 
     let output = quote! {
+        #[allow(unused_imports)]
+        use solarium_client::prelude::*;
+
         pub struct #client {
             connection: solarium_client::Connection,
         }
