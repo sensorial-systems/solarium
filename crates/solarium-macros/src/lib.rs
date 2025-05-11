@@ -1,3 +1,5 @@
+mod prelude;
+
 mod program_id_macro;
 mod program_macro;
 mod declare_id;
@@ -6,7 +8,7 @@ mod account_macro;
 mod generate_client_macro;
 
 use ligen::parser::Parser;
-use ligen_rust_parser::macro_attributes::attributes::AttributesParser;
+use ligen_rust::parser::macro_attributes::attributes::AttributesParser;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
 

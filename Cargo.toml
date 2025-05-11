@@ -7,6 +7,7 @@ members = [
     "crates/solarium-workspace",
     "crates/solarium-client",
     "crates/solarium-program",
+    "crates/solarium-rust-client-generator",
     "examples/hello-world",
 ]
 
@@ -22,6 +23,7 @@ authors = ["Danilo Guanabara <danilo@sensorial.systems>"]
 solarium = { version = "0.1.0", path = "crates/solarium" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
+solarium-rust-client-generator = { version = "0.1.0", path = "crates/solarium-rust-client-generator" }
 
 solana-pubkey = "=2.1.0"
 solana-sdk = "=2.1.0"
@@ -48,8 +50,10 @@ thiserror = "2.0.12"
 
 bytemuck_derive = "=1.8.1"
 
+syn = "2.0.29"
+quote = "1.0.33"
+proc-macro2 = "1"
+
 ligen = { path = "../ligen/ligen" }
-ligen-rust-parser = { path = "../ligen/ecosystem/rust/parser" }
-ligen-rust-generator = { path = "../ligen/ecosystem/rust/generator" }
-ligen-anchor-parser = { path = "../ligen/ecosystem/anchor/parser" }
-ligen-anchor-generator = { path = "../ligen/ecosystem/anchor/generator" }
+ligen-rust = { path = "../ligen/ecosystem/rust" }
+ligen-anchor = { path = "../ligen/ecosystem/anchor" }

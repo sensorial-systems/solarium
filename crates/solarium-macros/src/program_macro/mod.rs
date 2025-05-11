@@ -1,7 +1,7 @@
 mod default_process_instruction;
 
 use anyhow::Result;
-use ligen_rust_parser::RustInterfaceParser;
+use ligen_rust::parser::RustInterfaceParser;
 use ligen::transformer::Transformer;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};

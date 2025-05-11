@@ -1,7 +1,7 @@
-use ligen_anchor_generator::AnchorGenerator;
+use ligen_anchor::generator::AnchorGenerator;
 use ligen::prelude::*;
 use ligen::ir::Identifier;
-use ligen_rust_parser::library::RustLibraryParser;
+use ligen_rust::parser::library::RustLibraryParser;
 
 use crate::prelude::{*, Result};
 use crate::Program;

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use ligen::generator::Generator;
 use ligen::ir::Identifier;
-use ligen_rust_generator::{RustIdentifierGenerator, RustTypeGenerator};
+use ligen_rust::generator::{RustIdentifierGenerator, RustTypeGenerator};
 use quote::quote;
 
 #[allow(non_snake_case)]

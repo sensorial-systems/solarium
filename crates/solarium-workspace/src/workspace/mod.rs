@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use ligen::ir::Identifier;
-use ligen_rust_parser::cargo::Cargo;
+use ligen_rust::parser::Cargo;
 
 use crate::Program;
 

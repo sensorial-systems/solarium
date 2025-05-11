@@ -12,9 +12,8 @@ solana-sdk.workspace = true
 anyhow.workspace = true
 
 ligen.workspace = true
-ligen-rust-parser.workspace = true
-ligen-anchor-parser.workspace = true
-ligen-anchor-generator.workspace = true
+ligen-rust.workspace = true
+ligen-anchor.workspace = true
 
 tokio.workspace = true
 anchor-lang-idl-spec.workspace = true
