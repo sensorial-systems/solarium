@@ -27,12 +27,12 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
         solarium_program::prelude::solana_program::entrypoint!(process_instruction);
 
         pub fn process_instruction<'a>(
-            program_id: &solarium_program::prelude::solana_program::pubkey::Pubkey, // Public key of the program
-            accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo<'a>], // Data accounts, payer, etc.
-            instruction_data: &[u8],  // External data passed to program
-        ) -> solarium_program::prelude::solana_program::entrypoint::ProgramResult {
+            program_id: &solarium_program::prelude::solana_program::pubkey::PinocchioPubkey,
+            accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo],
+            instruction_data: &[u8],
+        ) -> solarium_program::prelude::solana_program::ProgramResult {
             let program = #program_name;
-            Ok(program.process_instruction(program_id, accounts, instruction_data)?)
+            Ok(program.process_instruction(&program_id.clone().into(), accounts, instruction_data)?)
         }
     })
 }

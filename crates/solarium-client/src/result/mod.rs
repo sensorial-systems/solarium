@@ -4,7 +4,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Program error: {0}")]
+    #[error("Program error: {0:?}")]
     ProgramError(solana_program::program_error::ProgramError),
     #[error("Client error: {0}")]
     ClientError(solana_client::client_error::ClientError),
@@ -42,9 +42,10 @@ impl From<Error> for solana_program::program_error::ProgramError {
     fn from(error: Error) -> Self {
         match error {
             Error::ProgramError(error) => error,
-            Error::IoError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            Error::ClientError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            Error::SubscriptionError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
+            _ => panic!("Unexpected error: {:?}", error),
+            // Error::IoError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
+            // Error::ClientError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
+            // Error::SubscriptionError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
         }
     }
 }

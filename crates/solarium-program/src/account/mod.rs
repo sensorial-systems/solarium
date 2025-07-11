@@ -4,12 +4,12 @@ use solana_program::account_info::AccountInfo;
 #[derive(Clone)]
 pub struct Account<'a, T = ()> {
     /// The account info.
-    pub info: &'a AccountInfo<'a>,
-    phantom: std::marker::PhantomData<T>,
+    pub info: &'a AccountInfo,
+    phantom: core::marker::PhantomData<T>,
 }
 
 impl<'a, T> Account<'a, T> {
-    pub fn new(info: &'a AccountInfo<'a>) -> Self {
+    pub fn new(info: &'a AccountInfo) -> Self {
         Self { info, phantom: Default::default() }
     }
 
@@ -18,14 +18,14 @@ impl<'a, T> Account<'a, T> {
     {
         let data = self.info.try_borrow_data()?;
         let data = &mut &data[..];
-        Ok(borsh::BorshDeserialize::deserialize(data)?)
+        Ok(borsh::BorshDeserialize::deserialize(data).expect("Failed to deserialize account data"))
     }
 }
 
-impl<'a, T> TryFrom<&'a AccountInfo<'a>> for Account<'a, T> {
+impl<'a, T> TryFrom<&'a AccountInfo> for Account<'a, T> {
     type Error = Error;
 
-    fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
+    fn try_from(info: &'a AccountInfo) -> Result<Self> {
         let phantom = Default::default();
         Ok(Self { info, phantom })
     }

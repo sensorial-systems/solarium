@@ -44,7 +44,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
                 let type_ = type_generator.generate(&input.type_, &config)?;
                 arguments.push(quote! {
-                    #type_::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                    #type_::try_from(accounts.next().ok_or(solarium_program::prelude::solana_program::program_error::ProgramError::NotEnoughAccountKeys)?)?
                 });
             } else {
                 let input_name = identifier_generator.generate(&input.identifier, &config)?;
@@ -92,11 +92,11 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
 
     let deserialize = quote! {
         impl solarium::prelude::borsh::BorshDeserialize for #instruction_name {
-            fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
+            fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
                 let discriminant = u64::deserialize_reader(reader)?;
                 match discriminant {
                     #(#deserializers),*,
-                    _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid instruction")),
+                    _ => Err(borsh::io::Error::new(borsh::io::ErrorKind::InvalidData, "Invalid instruction")),
                 }
             }
         }
@@ -104,7 +104,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
 
     let serialize = quote! {
         impl solarium::prelude::borsh::BorshSerialize for ImageGeneratorInstruction {
-            fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+            fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
                 match self {
                     #(#serializers),*
                 }
@@ -117,7 +117,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
             pub fn process_instruction<'a>(
                 &self,
                 program_id: &solarium_program::prelude::solana_program::pubkey::Pubkey,
-                accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo<'a>],
+                accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo],
                 instruction_data: &[u8],
             ) -> Result<()> {
                 check_id(program_id).then_some(()).ok_or(solarium_program::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;

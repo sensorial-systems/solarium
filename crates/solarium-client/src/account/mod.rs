@@ -15,7 +15,7 @@ impl<T> Account<T> {
     }
 
     pub fn address(&self) -> Pubkey {
-        self.address
+        self.address.clone().into()
     }
 
     pub fn pda<S: Seeds>(connection: &Connection, seeds: S) -> Self
@@ -29,7 +29,7 @@ impl<T> Account<T> {
     pub async fn data(&self) -> Result<T>
     where T: BorshDeserialize
     {
-        let data = self.connection.get_account_data(&self.address).await?;
+        let data = self.connection.get_account_data(&solana_sdk::pubkey::Pubkey::from(self.address.0.clone())).await?;
         Ok(BorshDeserialize::deserialize(&mut &data[..])?)
     }
 
@@ -42,6 +42,6 @@ impl<T> Account<T> {
     pub async fn subscribe_with_commitment(&self, commitment: CommitmentConfig) -> Result<Subscription<T>>
     where T: BorshDeserialize
     {
-        Ok(Subscription::account(&self.connection, self.address, Some(commitment)).await?)
+        Ok(Subscription::account(&self.connection, self.address(), Some(commitment)).await?)
     }
 }

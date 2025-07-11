@@ -30,7 +30,7 @@ impl<T: BorshDeserialize> Subscription<T> {
         };
         // FIXME: This is a hack to make the client live for the lifetime of the subscription
         let client = Box::leak(Box::new(client));
-        let (receiver, unsubscribe_function) = client.account_subscribe(&address, Some(config)).await?;
+        let (receiver, unsubscribe_function) = client.account_subscribe(&solana_sdk::pubkey::Pubkey::from(address.0.clone()), Some(config)).await?;
         let receiver = receiver
             .filter_map(|account| async move {
                 account.value.data.decode()
@@ -56,7 +56,7 @@ impl<T: BorshDeserialize> Subscription<T> {
         };
         // FIXME: This is a hack to make the client live for the lifetime of the subscription
         let client = Box::leak(Box::new(client));
-        let (receiver, unsubscribe_function) = client.program_subscribe(&program_id, Some(config)).await?;
+        let (receiver, unsubscribe_function) = client.program_subscribe(&solana_sdk::pubkey::Pubkey::from(program_id.0.clone()), Some(config)).await?;
         let receiver = receiver
             .filter_map(|account| async move {
                 account.value.account.data.decode()

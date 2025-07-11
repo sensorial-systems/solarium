@@ -43,7 +43,7 @@ pub trait Program {
             },
             ..Default::default()
         };
-        let accounts = self.connection().get_program_accounts_with_config(&Self::id(), config).await?;
+        let accounts = self.connection().get_program_accounts_with_config(&solana_sdk::pubkey::Pubkey::from(Self::id().0.clone()), config).await?;
         let images = accounts
             .iter()
             .filter_map(|(_, account)| borsh::BorshDeserialize::deserialize(&mut &account.data[..]).ok())

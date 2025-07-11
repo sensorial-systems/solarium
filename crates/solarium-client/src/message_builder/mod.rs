@@ -22,6 +22,7 @@ impl MessageBuilder {
     }
 
     pub async fn sign<T: Signers + ?Sized>(&self, signers: &T, payer: Option<&Pubkey>) -> Result<Transaction> {
-        Ok(Transaction::new(&self.connection, &self.message, payer, signers, self.connection.get_latest_blockhash().await?))
+        let payer = payer.map(|p| solana_sdk::pubkey::Pubkey::from(p.0.clone()));
+        Ok(Transaction::new(&self.connection, &self.message, payer.as_ref(), signers, self.connection.get_latest_blockhash().await?))
     }
 }

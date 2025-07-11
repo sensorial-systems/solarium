@@ -852,6 +852,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "const-crypto"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c06f1eb05f06cf2e380fdded278fbf056a38974299d77960555a311dcf91a52"
+dependencies = [
+ "keccak-const",
+ "sha2-const-stable",
+]
+
+[[package]]
 name = "constant_time_eq"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2063,6 +2073,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "keccak-const"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57d8d8ce877200136358e0bbff3a77965875db3af755a11e1fa6b1b3e2df13ea"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2704,6 +2720,26 @@ name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
+
+[[package]]
+name = "pinocchio"
+version = "0.8.4"
+
+[[package]]
+name = "pinocchio-pubkey"
+version = "0.2.4"
+dependencies = [
+ "const-crypto",
+ "pinocchio",
+]
+
+[[package]]
+name = "pinocchio-system"
+version = "0.2.3"
+dependencies = [
+ "pinocchio",
+ "pinocchio-pubkey",
+]
 
 [[package]]
 name = "pkg-config"
@@ -3508,6 +3544,12 @@ dependencies = [
  "cpufeatures",
  "digest 0.10.7",
 ]
+
+[[package]]
+name = "sha2-const-stable"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f179d4e11094a893b82fff208f74d448a7512f99f5a0acbd5c679b705f83ed9"
 
 [[package]]
 name = "sha3"
@@ -4828,8 +4870,8 @@ version = "0.1.0"
 dependencies = [
  "borsh 1.5.7",
  "sha2 0.10.9",
- "solana-pubkey",
  "solarium-macros",
+ "solarium-pinocchio",
 ]
 
 [[package]]
@@ -4877,12 +4919,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "solarium-pinocchio"
+version = "0.1.0"
+dependencies = [
+ "pinocchio",
+ "pinocchio-system",
+]
+
+[[package]]
 name = "solarium-program"
 version = "0.1.0"
 dependencies = [
  "shrinkwraprs",
- "solana-program",
  "solarium",
+ "solarium-pinocchio",
  "thiserror 2.0.12",
 ]
 

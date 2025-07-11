@@ -3,7 +3,7 @@ use crate::prelude::*;
 use solana_program::account_info::AccountInfo;
 
 pub struct GuardMut<'a, T: BorshSerialize> {
-    pub account: &'a AccountInfo<'a>,
+    pub account: &'a AccountInfo,
     pub data: T,
 }
 
@@ -15,7 +15,7 @@ impl<'a, T: BorshSerialize> Drop for GuardMut<'a, T> {
     }
 }
 
-impl<'a, T: BorshSerialize> std::ops::Deref for GuardMut<'a, T> {
+impl<'a, T: BorshSerialize> core::ops::Deref for GuardMut<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -23,7 +23,7 @@ impl<'a, T: BorshSerialize> std::ops::Deref for GuardMut<'a, T> {
     }
 }
 
-impl<'a, T: BorshSerialize> std::ops::DerefMut for GuardMut<'a, T> {
+impl<'a, T: BorshSerialize> core::ops::DerefMut for GuardMut<'a, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.data
     }
