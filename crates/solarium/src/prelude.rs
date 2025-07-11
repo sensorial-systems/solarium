@@ -2,6 +2,5 @@ pub use solarium_macros::*;
 pub use solana_pubkey::Pubkey;
 
 pub use borsh::{self, BorshSerialize, BorshDeserialize};
-pub use solana_program;
 
 pub use crate::{Owner, Space, Seeds, Initialization};

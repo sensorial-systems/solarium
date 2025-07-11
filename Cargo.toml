@@ -21,6 +21,7 @@ authors = ["Danilo Guanabara <danilo@sensorial.systems>"]
 
 [workspace.dependencies]
 solarium = { version = "0.1.0", path = "crates/solarium" }
+solarium-program = { version = "0.1.0", path = "crates/solarium-program" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
 solarium-rust-client-generator = { version = "0.1.0", path = "crates/solarium-rust-client-generator" }

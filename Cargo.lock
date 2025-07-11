@@ -4828,7 +4828,6 @@ version = "0.1.0"
 dependencies = [
  "borsh 1.5.7",
  "sha2 0.10.9",
- "solana-program",
  "solana-pubkey",
  "solarium-macros",
 ]
@@ -4853,9 +4852,9 @@ dependencies = [
  "shrinkwraprs",
  "solana-account-decoder-client-types",
  "solana-client",
- "solana-program",
  "solana-sdk",
  "solarium",
+ "solarium-program",
  "thiserror 2.0.12",
  "tokio",
 ]
