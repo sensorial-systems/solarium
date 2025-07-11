@@ -44,7 +44,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
                 let type_ = type_generator.generate(&input.type_, &config)?;
                 arguments.push(quote! {
-                    #type_::try_from(solarium::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                    #type_::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
                 });
             } else {
                 let input_name = identifier_generator.generate(&input.identifier, &config)?;
@@ -116,13 +116,13 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::ir::Interface) 
         impl #program_name {
             pub fn process_instruction<'a>(
                 &self,
-                program_id: &solarium::prelude::solana_program::pubkey::Pubkey,
-                accounts: &'a [solarium::prelude::solana_program::account_info::AccountInfo<'a>],
+                program_id: &solarium_program::prelude::solana_program::pubkey::Pubkey,
+                accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo<'a>],
                 instruction_data: &[u8],
             ) -> Result<()> {
-                check_id(program_id).then_some(()).ok_or(solarium::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
+                check_id(program_id).then_some(()).ok_or(solarium_program::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
                 let accounts = &mut accounts.iter();
-                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
+                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium_program::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
                     #(#calls),*
                 }
                 Ok(())
