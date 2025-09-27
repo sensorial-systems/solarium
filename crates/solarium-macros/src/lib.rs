@@ -7,8 +7,8 @@ mod discriminator_macro;
 mod account_macro;
 mod generate_client_macro;
 
-use ligen::parser::Parser;
-use ligen_rust::parser::macro_attributes::attributes::AttributesParser;
+use ligen::prelude::Parser;
+use ligen_rust::parser::RustAttributesParser as AttributesParser;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
 

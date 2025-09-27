@@ -1,4 +1,4 @@
-use ligen::ir::Attributes;
+use ligen::idl::Attributes;
 use proc_macro2::TokenStream;
 use quote::quote;
 use anyhow::Result;

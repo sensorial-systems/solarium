@@ -70,8 +70,8 @@ impl ModuleGenerator {
     }
 }
 
-impl Generator<&ligen::ir::Module, syn::ItemMod> for ModuleGenerator {
-    fn generate(&self, module: &ligen::ir::Module, config: &Config) -> Result<syn::ItemMod> {
+impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
+    fn generate(&self, module: &ligen::idl::Module, config: &Config) -> Result<syn::ItemMod> {
         let ident = self.identifier_generator.generate(&module.identifier, config)?;
         let program_name = config.get("program-name").context("Program name not found")?;
         let mut items: Vec<proc_macro2::TokenStream> = Default::default();
@@ -88,12 +88,12 @@ impl Generator<&ligen::ir::Module, syn::ItemMod> for ModuleGenerator {
                 let mut client_methods = Vec::new();
                 let mut message_builder_methods = Vec::new();
                 for method in &interface.methods {
-                    if method.visibility == ligen::ir::Visibility::Public {
+                    if method.visibility == ligen::idl::Visibility::Public {
                         let method_name = &method.identifier;
                         let method_name = self.identifier_generator.generate(&method_name, config)?;
                         let instruction = &method.identifier + "_instruction";
                         let instruction = self.identifier_generator.generate(&instruction, config)?;
-                        let discriminator = ligen::ir::Literal::from(&format!("global:{}", method.identifier));
+                        let discriminator = ligen::idl::Literal::from(&format!("global:{}", method.identifier));
                         let discriminator = self.literal_generator.generate(&discriminator, config)?;
                         let mut parameters: Vec<proc_macro2::TokenStream> = Vec::new();
                         let mut arguments: Vec<proc_macro2::TokenStream> = Vec::new();
@@ -106,8 +106,8 @@ impl Generator<&ligen::ir::Module, syn::ItemMod> for ModuleGenerator {
                                 #name
                             });
                             if parameter.type_.is_mutable_reference() || parameter.type_.is_constant_reference() {
-                                let is_writable = ligen::ir::Literal::from(parameter.type_.is_mutable_reference());
-                                let is_signer = ligen::ir::Literal::from(parameter.type_.path.last().identifier == "Signer");
+                                let is_writable = ligen::idl::Literal::from(parameter.type_.is_mutable_reference());
+                                let is_signer = ligen::idl::Literal::from(parameter.type_.path.last().identifier == "Signer");
                                 let is_writable = self.literal_generator.generate(&is_writable, config)?;
                                 let is_signer = self.literal_generator.generate(&is_signer, config)?;
                                 accounts.push(quote! {
