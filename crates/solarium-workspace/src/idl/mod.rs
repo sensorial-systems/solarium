@@ -1,7 +1,7 @@
 use ligen_anchor::generator::AnchorGenerator;
 use ligen::prelude::*;
-use ligen::ir::Identifier;
-use ligen_rust::parser::library::RustLibraryParser;
+use ligen::idl::{Identifier, Library};
+use ligen_rust::parser::RustLibraryParser;
 
 use crate::prelude::{*, Result};
 use crate::Program;
@@ -9,7 +9,7 @@ use crate::Workspace;
 
 #[derive(Debug)]
 pub struct Idl {
-    pub idl: ligen::ir::Library
+    pub idl: Library
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -2127,6 +2127,7 @@ name = "ligen"
 version = "0.1.18"
 dependencies = [
  "ligen-common",
+ "ligen-idl",
  "ligen-ir",
  "ligen-macro",
  "ligen-traits",
@@ -2149,7 +2150,7 @@ dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
  "is-tree",
- "ligen-ir",
+ "ligen-idl",
  "ligen-transformer",
  "sha2 0.10.9",
 ]
@@ -2159,7 +2160,7 @@ name = "ligen-anchor-parser"
 version = "0.1.18"
 dependencies = [
  "anchor-lang-idl-spec",
- "ligen-ir",
+ "ligen-idl",
  "ligen-transformer",
  "serde_json",
 ]
@@ -2177,7 +2178,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ligen-ir"
+name = "ligen-idl"
 version = "0.1.18"
 dependencies = [
  "enum-as-inner",
@@ -2189,6 +2190,19 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+]
+
+[[package]]
+name = "ligen-ir"
+version = "0.1.18"
+dependencies = [
+ "enum-as-inner",
+ "is-tree",
+ "ligen-common",
+ "ligen-idl",
+ "schemars",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2208,7 +2222,7 @@ name = "ligen-rust-generator"
 version = "0.1.18"
 dependencies = [
  "anyhow",
- "ligen-ir",
+ "ligen-idl",
  "ligen-transformer",
  "proc-macro2",
  "syn 2.0.101",
@@ -2231,7 +2245,7 @@ name = "ligen-traits"
 version = "0.1.18"
 dependencies = [
  "ligen-common",
- "ligen-ir",
+ "ligen-idl",
  "ligen-utils",
  "serde",
  "serde_json",
@@ -2245,7 +2259,7 @@ dependencies = [
  "handlebars",
  "is-tree",
  "ligen-common",
- "ligen-ir",
+ "ligen-idl",
  "ligen-utils",
  "pretty_assertions",
  "serde",
@@ -2260,7 +2274,7 @@ version = "0.1.18"
 dependencies = [
  "bimap",
  "ligen-common",
- "ligen-ir",
+ "ligen-idl",
 ]
 
 [[package]]
