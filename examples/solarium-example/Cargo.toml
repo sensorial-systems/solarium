@@ -1,0 +1,18 @@
+[package]
+name = "solarium-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+solarium-program.workspace = true
+solarium.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dev-dependencies]
+tokio.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+solarium-client.workspace = true

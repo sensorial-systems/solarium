@@ -8,7 +8,7 @@ members = [
     "crates/solarium-client",
     "crates/solarium-program",
     "crates/solarium-rust-client-generator",
-    "examples/hello-world",
+    "examples/solarium-example",
 ]
 
 [workspace.package]
@@ -24,6 +24,7 @@ solarium = { version = "0.1.0", path = "crates/solarium" }
 solarium-program = { version = "0.1.0", path = "crates/solarium-program" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
+solarium-client = { version = "0.1.0", path = "crates/solarium-client" }
 solarium-rust-client-generator = { version = "0.1.0", path = "crates/solarium-rust-client-generator" }
 
 solana-pubkey = "=2.1.0"

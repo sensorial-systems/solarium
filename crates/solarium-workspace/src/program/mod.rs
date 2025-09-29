@@ -73,14 +73,24 @@ impl Program {
         let cargo_toml = folder.join("Cargo.toml");
         let cargo_toml = std::fs::read_to_string(&cargo_toml).context("Failed to read Cargo.toml")?;
         let cargo_toml: toml::Value = toml::from_str(&cargo_toml).context("Failed to parse Cargo.toml")?;
+        // Only treat crates that build a cdylib as deployable on-chain programs
+        let is_program_crate = cargo_toml
+            .get("lib")
+            .and_then(|lib| lib.get("crate-type"))
+            .and_then(|crate_type| crate_type.as_array())
+            .map(|arr| arr.iter().any(|v| v.as_str() == Some("cdylib")))
+            .unwrap_or(false);
+        if !is_program_crate {
+            anyhow::bail!("Not a program crate (missing cdylib crate-type)");
+        }
         let package = cargo_toml.get("package").context("Failed to get package")?;
         let name = package.get("name").context("Failed to get package name")?;
         let name = Identifier::from(name.as_str().context("Failed to get package name")?);
         cargo_toml
             .get("dependencies")
             .context("Failed to get dependencies")?
-            .get("solarium")
-            .context("Solarium is not a dependency")?;
+            .get("solarium-program")
+            .context("solarium-program is not a dependency")?;
         let public_key = Self::get_program_id_from_file(&root, name.to_string())?;
         Ok(Self { name, public_key, folder })
     }
