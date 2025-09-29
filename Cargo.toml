@@ -9,6 +9,7 @@ members = [
     "crates/solarium-program",
     "crates/solarium-rust-client-generator",
     "examples/solarium-example",
+    "examples/file-upload-example",
 ]
 
 [workspace.package]

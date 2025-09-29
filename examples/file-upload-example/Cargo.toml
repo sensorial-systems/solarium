@@ -1,0 +1,24 @@
+[package]
+name = "file-upload-example"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+solarium.workspace = true
+solarium-program.workspace = true
+solana-program.workspace = true
+borsh.workspace = true
+
+[dev-dependencies]
+solarium-client.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+
+[features]
+no-entrypoint = []
+
+

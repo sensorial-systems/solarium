@@ -6,7 +6,7 @@ use solarium_program::prelude::*;
 use solarium_program::{Account, Program, Signer};
 
 /// Example PDA account storing a simple message
-#[account(pda(space = 256))]
+#[account(pda)]
 #[derive(Debug, Default)]
 pub struct ExampleData {
     /// Arbitrary message set by the program
@@ -26,7 +26,7 @@ impl Seeds for ExampleSeeds {
 impl Example {
     pub fn initialize<'a>(&self, payer: &Signer<'a>, data: &mut Account<'a, ExampleData>, system_program: &Program<'a>) -> Result<()> {
         msg!("Initializing Example PDA");
-        data.initialize(payer, ExampleSeeds::default(), system_program)?;
+        data.allocate(payer, ExampleSeeds::default(), system_program, 256)?;
         Ok(())
     }
 

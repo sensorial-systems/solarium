@@ -81,6 +81,9 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                 let message_builder = client + "MessageBuilder";
                 let client = self.identifier_generator.generate(&client, config)?;
                 let program_name = self.literal_generator.generate(&program_name, config)?;
+                let program_crate_lit = config.get("program-crate").expect("program-crate not set");
+                let program_crate: syn::Ident = syn::parse_str(program_crate_lit.as_string().as_deref().expect("program-crate must be string literal"))
+                    .expect("invalid program-crate ident");
                 let message_builder = self.identifier_generator.generate(&message_builder, config)?;
 
                 let client_base = self.generate_client_base(&program_name, &client, &message_builder)?;
@@ -157,9 +160,12 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                 }
         
                 items.push(quote!(
+                    use #program_crate::*;
+
                     #client_base
 
                     impl #client {
+                        #[allow(unused_imports)]
                         #(#client_methods)*
                     }
 
