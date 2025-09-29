@@ -1,0 +1,21 @@
+[book]
+title = "Solarium Tutorial"
+authors = ["Solarium Contributors"]
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+default-theme = "ayu"
+git-repository-url = "https://github.com/sensorial-systems/solarium"
+site-url = "/solarium/"
+additional-css = []
+additional-js = []
+
+[output.html.playground]
+editable = false
+copyable = true
+
+[preprocessor.index]
+expand_glob = true
+

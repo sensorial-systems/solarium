@@ -39,3 +39,20 @@ Deploy the Solarium workspace:
 ```bash
 solarium deploy
 ```
+
+## Documentation (mdBook)
+
+The tutorial lives under `docs/` and is built with mdBook.
+
+Build locally:
+
+```bash
+cargo install mdbook
+mdbook build docs
+```
+
+Serve locally with live reload:
+
+```bash
+mdbook serve docs --open
+```
