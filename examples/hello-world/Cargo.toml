@@ -9,3 +9,4 @@ authors = ["Danilo Guanabara <danilo@sensorial.systems>"]
 
 [dependencies]
 solarium.workspace = true
+solana-program.workspace = true

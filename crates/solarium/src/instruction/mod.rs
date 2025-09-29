@@ -1,5 +1,5 @@
 use sha2::{Digest, Sha256};
-use borsh::{BorshSerialize, BorshDeserialize};
+use crate::prelude::borsh::{BorshSerialize, BorshDeserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize)]
 pub struct Instruction<Data> {

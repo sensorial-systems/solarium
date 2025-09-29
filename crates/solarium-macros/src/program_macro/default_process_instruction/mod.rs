@@ -103,7 +103,7 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::idl::Interface)
     };
 
     let serialize = quote! {
-        impl solarium::prelude::borsh::BorshSerialize for ImageGeneratorInstruction {
+        impl solarium::prelude::borsh::BorshSerialize for #instruction_name {
             fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
                 match self {
                     #(#serializers),*
