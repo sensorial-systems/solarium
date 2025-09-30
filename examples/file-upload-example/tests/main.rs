@@ -30,18 +30,19 @@ async fn solana() -> Result<()> {
     let file_pda = Account::<FileAccount>::pda(&connection, FileSeeds::default());
     let program = FileUploadExample::new(&connection);
 
-    // Prepare sample file bytes and expected CRC
-    let file_bytes = b"The quick brown fox jumps over the lazy dog".to_vec();
+    // Prepare ~10KB file where byte i = i % 256 (limit: inner create max 10_240 bytes total)
+    // Borsh header overhead for FileAccount { u32, u64, u32, Vec<u8> } is 20 bytes (4+8+4+4)
+    // So max payload to fit is 10_240 - 20 = 10_220 bytes
+    let size: usize = 10 * 1024 - 20;
+    let mut file_bytes = vec![0u8; size];
+    for i in 0..size {
+        file_bytes[i] = (i % 256) as u8;
+    }
     let expected_crc32 = crc32_ieee(&file_bytes);
     let file_size = file_bytes.len() as u64;
 
-    // Split into two chunks to exercise chunked upload
-    let split = 17usize;
-    let chunk_a = file_bytes[..split].to_vec();
-    let chunk_b = file_bytes[split..].to_vec();
-
-    // Initialize PDA with expected CRC and total size, then upload chunks and verify
-    let signature = program
+    // Initialize in its own transaction
+    let init_sig = program
         .message_builder()
         .initialize(
             keypair.pubkey(),
@@ -49,20 +50,34 @@ async fn solana() -> Result<()> {
             solana_sdk::system_program::ID,
             InitArgs { expected_crc32, file_size },
         )?
-        .upload_chunk(
-            keypair.pubkey(),
-            file_pda.address(),
-            UploadChunkArgs { offset: 0, data: chunk_a.clone() },
-        )?
-        .upload_chunk(
-            keypair.pubkey(),
-            file_pda.address(),
-            UploadChunkArgs { offset: split as u64, data: chunk_b.clone() },
-        )?
-        .check_crc(
-            keypair.pubkey(),
-            file_pda.address(),
-        )?
+        .sign(&[&keypair], Some(&keypair.pubkey())).await?
+        .send_and_confirm().await;
+
+    if let Err(e) = init_sig { panic!("{:#?}", e) }
+
+    // Upload in 1KB chunks, one transaction per chunk to avoid tx size limits
+    let chunk_len = 512usize;
+    let mut offset = 0usize;
+    while offset < size {
+        let end = core::cmp::min(offset + chunk_len, size);
+        let chunk = file_bytes[offset..end].to_vec();
+        let up_sig = program
+            .message_builder()
+            .upload_chunk(
+                keypair.pubkey(),
+                file_pda.address(),
+                UploadChunkArgs { offset: offset as u64, data: chunk },
+            )?
+            .sign(&[&keypair], Some(&keypair.pubkey())).await?
+            .send_and_confirm().await;
+        if let Err(e) = up_sig { panic!("{:#?}", e) }
+        offset = end;
+    }
+
+    // Final check in its own transaction
+    let signature = program
+        .message_builder()
+        .check_crc(keypair.pubkey(), file_pda.address())?
         .sign(&[&keypair], Some(&keypair.pubkey())).await?
         .send_and_confirm().await;
 
