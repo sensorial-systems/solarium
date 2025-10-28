@@ -98,7 +98,7 @@ impl Workspace {
             .status()
             .await {
             if child.success() {
-                println!("killed solana-test-validator");
+                println!("Restarting solana-test-validator");
                 tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
             }
         }
@@ -118,7 +118,7 @@ impl Workspace {
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
             attempts -= 1;
             if attempts == 0 {
-                panic!("failed to deploy programs");
+                panic!("Failed to deploy programs");
             }
         }
 
@@ -147,7 +147,7 @@ impl Workspace {
         .arg("build-sbf")
         .status()
         .await
-        .context("failed to run cargo build")?;
+        .context("Failed to run cargo build")?;
 
         if !status.success() {
             anyhow::bail!("cargo build-sbf failed");
