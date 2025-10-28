@@ -9,9 +9,12 @@ pub struct GuardMut<'a, T: BorshSerialize> {
 
 impl<'a, T: BorshSerialize> Drop for GuardMut<'a, T> {
     fn drop(&mut self) {
-        let mut data = self.account.try_borrow_mut_data().unwrap();
-        let serialize_data = crate::prelude::borsh::to_vec(&self.data).unwrap();
-        data[..serialize_data.len()].copy_from_slice(&serialize_data);
+        if let Ok(mut data) = self.account.try_borrow_mut_data() {
+            if let Ok(serialize_data) = crate::prelude::borsh::to_vec(&self.data) {
+                let len = core::cmp::min(serialize_data.len(), data.len());
+                data[..len].copy_from_slice(&serialize_data[..len]);
+            }
+        }
     }
 }
 

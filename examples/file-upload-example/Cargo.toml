@@ -11,6 +11,8 @@ solarium.workspace = true
 solarium-program.workspace = true
 solana-program.workspace = true
 borsh.workspace = true
+bytemuck.workspace = true
+bytemuck_derive.workspace = true
 
 [dev-dependencies]
 solarium-client.workspace = true

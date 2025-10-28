@@ -90,6 +90,19 @@ impl Workspace {
     pub async fn dev(&self) -> Result<tokio::process::Child> {
         self.build().await?;
 
+        // TODO: Wrap TestValidator in a struct.
+        // kill solana-test-validator if it is running
+        if let Ok(child) = tokio::process::Command::new("pkill")
+            .arg("-f")
+            .arg("solana-test-validator")
+            .status()
+            .await {
+            if child.success() {
+                println!("killed solana-test-validator");
+                tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+            }
+        }
+
         let test_ledger = self.root.join(".test-ledger");
         let solana_test_validator = tokio::process::Command::new("solana-test-validator")
             .arg("--reset")

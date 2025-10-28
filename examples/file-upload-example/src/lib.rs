@@ -41,19 +41,19 @@ const CRC32_TABLE: [u32; 256] = [
     0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D,
 ];
 
-// PDA storing file metadata and a dynamically-sized byte vector
+// PDA storing file metadata as a header; payload is raw account bytes after the header
 #[account(pda)]
 #[derive(Debug)]
 pub struct FileAccount {
     pub expected_crc32: u32,
     pub file_size: u64,
     pub written_crc32: u32,
-    pub bytes: Vec<u8>,
+    pub payload_len: u32,
 }
 
 impl Default for FileAccount {
     fn default() -> Self {
-        Self { expected_crc32: 0, file_size: 0, written_crc32: 0, bytes: Vec::new() }
+        Self { expected_crc32: 0, file_size: 0, written_crc32: 0, payload_len: 0 }
     }
 }
 
@@ -94,12 +94,12 @@ impl FileUploadExample {
     ) -> Result<()> {
         msg!("Initialize FileAccount PDA with dynamic size");
 
-        // Prepare initial data with requested capacity
+        // Prepare initial header; payload will be grown separately
         let initial = FileAccount {
             expected_crc32: args.expected_crc32,
             file_size: args.file_size,
             written_crc32: 0,
-            bytes: vec![0u8; args.file_size as usize],
+            payload_len: 0,
         };
         file.initialize_with_data(payer, FileSeeds::default(), system_program, initial)?;
         Ok(())
@@ -107,28 +107,80 @@ impl FileUploadExample {
 
     pub fn upload_chunk(&self, _payer: &Signer, file: &mut Account<FileAccount>, args: UploadChunkArgs) -> Result<()> {
         msg!("Upload chunk at offset {} ({} bytes)", args.offset, args.data.len());
-        let mut acc = file.data()?;
+        let acc_ro = file.data()?;
+        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let payload_len = acc_ro.payload_len as usize;
+        let file_size = acc_ro.file_size as usize;
+        drop(acc_ro);
+
         let end = args.offset as usize + args.data.len();
-        if args.offset as u64 > acc.file_size || (end as u64) > acc.file_size || end > acc.bytes.len() {
+        if end > payload_len || end > file_size {
             return Err(solana_program::program_error::ProgramError::InvalidInstructionData.into());
         }
-        acc.bytes[args.offset as usize..end].copy_from_slice(&args.data);
+        let mut bytes = file.bytes_mut()?;
+        let start = header_size + args.offset as usize;
+        let stop = header_size + end;
+        bytes[start..stop].copy_from_slice(&args.data);
         Ok(())
     }
 
     pub fn check_crc(&self, _payer: &Signer, file: &mut Account<FileAccount>) -> Result<()> {
         msg!("Check CRC32");
-        let mut acc = file.data()?;
-        let mut crc: u32 = 0xFFFF_FFFF;
-        let remaining = acc.file_size as usize;
-        for &byte in acc.bytes.iter().take(remaining) {
-            let idx = ((crc ^ (byte as u32)) & 0xFF) as usize;
-            crc = (crc >> 8) ^ CRC32_TABLE[idx];
-        }
-        acc.written_crc32 = !crc;
-        if acc.written_crc32 != acc.expected_crc32 {
+        let acc_ro = file.data()?;
+        if acc_ro.payload_len as u64 != acc_ro.file_size {
             return Err(solana_program::program_error::ProgramError::InvalidAccountData.into());
         }
+        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let remaining = acc_ro.file_size as usize;
+        drop(acc_ro);
+
+        // Compute CRC in a separate scope so the immutable bytes borrow is dropped
+        // before we attempt to mutably borrow and write the header.
+        let computed_crc = {
+            let bytes = file.bytes()?;
+            let payload = &bytes[header_size..header_size + remaining];
+            let mut crc: u32 = 0xFFFF_FFFF;
+            for &byte in payload.iter() {
+                let idx = ((crc ^ (byte as u32)) & 0xFF) as usize;
+                crc = (crc >> 8) ^ CRC32_TABLE[idx];
+            }
+            !crc
+        };
+        let mut acc_mut = file.data()?;
+        acc_mut.written_crc32 = computed_crc;
+        if acc_mut.written_crc32 != acc_mut.expected_crc32 {
+            return Err(solana_program::program_error::ProgramError::InvalidAccountData.into());
+        }
+        Ok(())
+    }
+
+    pub fn grow<'a>(
+        &self,
+        payer: &Signer<'a>,
+        file: &mut Account<'a, FileAccount>,
+        system_program: &Program<'a>,
+        additional_bytes: u64,
+    ) -> Result<()> {
+        // no-op
+
+        if additional_bytes == 0 || additional_bytes > 10_240 {
+            return Err(solana_program::program_error::ProgramError::InvalidInstructionData.into());
+        }
+
+        let acc_ro = file.data()?;
+        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let current_len = acc_ro.payload_len as usize;
+        let file_size = acc_ro.file_size as usize;
+        drop(acc_ro);
+
+        let new_len = core::cmp::min(file_size, current_len + additional_bytes as usize);
+        if new_len == current_len { return Ok(()); }
+
+        let target_account_len = header_size + new_len;
+        file.realloc_to(payer, system_program, target_account_len, true)?;
+
+        let mut acc_mut = file.data()?;
+        acc_mut.payload_len = new_len as u32;
         Ok(())
     }
 

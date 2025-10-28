@@ -1,4 +1,5 @@
-use crate::{prelude::*, GuardMut, Guard};
+use crate::{prelude::*, GuardMut, Guard, Signer, Program};
+use core::cell::{Ref, RefMut};
 use solana_program::account_info::AccountInfo;
 
 #[derive(Clone)]
@@ -19,6 +20,34 @@ impl<'a, T> Account<'a, T> {
         let data = self.info.try_borrow_data()?;
         let data = &mut &data[..];
         Ok(borsh::BorshDeserialize::deserialize(data)?)
+    }
+
+    pub fn bytes(&self) -> Result<Ref<'a, [u8]>> {
+        let data = self.info.try_borrow_data()?;
+        Ok(Ref::map(data, |d| &d[..]))
+    }
+
+    pub fn bytes_mut(&self) -> Result<RefMut<'a, [u8]>> {
+        let data = self.info.try_borrow_mut_data()?;
+        Ok(RefMut::map(data, |d| &mut d[..]))
+    }
+
+    pub fn realloc_to(&self, payer: &Signer<'a>, system_program: &Program<'a>, new_len: usize, zero_init: bool) -> Result<()> {
+        use solana_program::{rent::Rent, sysvar::Sysvar, program::invoke};
+        // Top up lamports if needed to maintain rent exemption at new size
+        let rent = Rent::get()?;
+        let required = rent.minimum_balance(new_len);
+        let current = self.info.lamports();
+        if required > current {
+            let ix = solana_program::system_instruction::transfer(
+                &payer.info.signer_key().unwrap(),
+                self.info.key,
+                required - current,
+            );
+            invoke(&ix, &[payer.info.clone(), self.info.clone(), system_program.info.clone()])?;
+        }
+        self.info.realloc(new_len, zero_init)?;
+        Ok(())
     }
 }
 

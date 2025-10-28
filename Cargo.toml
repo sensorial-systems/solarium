@@ -48,6 +48,7 @@ walkdir = "2"
 toml = "0.8.20"
 sha2 = "0.10.2"
 borsh = { version = "1.5.7", features = ["derive"] }
+bytemuck = "1.16.3"
 
 thiserror = "2.0.12"
 

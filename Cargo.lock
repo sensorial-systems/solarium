@@ -1349,6 +1349,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "borsh 1.5.7",
+ "bytemuck",
+ "bytemuck_derive",
  "futures",
  "solana-program",
  "solarium",
@@ -2189,6 +2191,7 @@ name = "ligen-idl"
 version = "0.1.18"
 dependencies = [
  "enum-as-inner",
+ "heck 0.4.1",
  "is-tree",
  "ligen-common",
  "regex",
