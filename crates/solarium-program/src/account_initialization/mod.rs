@@ -12,7 +12,8 @@ pub trait AccountInitialization<'a, T> {
         payer: &Signer<'a>,
         seeds: S,
         system_program: &Program<'a>
-    ) -> Result<()>;
+    ) -> Result<()>
+    where T: Default;
 
     fn initialize_with_data<S: Seeds>(
         self,
@@ -21,7 +22,7 @@ pub trait AccountInitialization<'a, T> {
         system_program: &Program<'a>,
         initial: T,
     ) -> Result<()>
-    where T: BorshSerialize + Default;
+    where T: BorshSerialize;
 
     fn allocate<S: Seeds>(
         self,
@@ -38,7 +39,9 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         payer: &Signer<'a>,
         seeds: S,
         system_program: &Program<'a>
-    ) -> Result<()> {
+    ) -> Result<()>
+    where T: Default
+    {
         self.initialize_with_data(payer, seeds, system_program, T::default())
     }
 
@@ -49,7 +52,7 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         system_program: &Program<'a>,
         initial: T,
     ) -> Result<()>
-    where T: BorshSerialize + Default
+    where T: BorshSerialize
     {
         if self.info.lamports() > 0 {
             return Ok(());

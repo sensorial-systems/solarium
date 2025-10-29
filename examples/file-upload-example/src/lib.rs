@@ -196,5 +196,3 @@ impl FileUploadExample {
         Ok(())
     }
 }
-
-

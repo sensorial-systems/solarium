@@ -1,3 +1,3 @@
 use crate::prelude::*;
 
-pub trait Initialization: Default + Owner + BorshSerialize {}
+pub trait Initialization: Owner + BorshSerialize {}
