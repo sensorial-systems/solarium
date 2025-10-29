@@ -9,7 +9,7 @@ pub fn process(input: syn::ItemStruct, attributes: Attributes) -> Result<TokenSt
         quote! {
             impl solarium::Owner for #struct_name {
                 fn owner() -> &'static solarium::prelude::Pubkey {
-                    &ID
+                    &crate::ID
                 }
             }
 
