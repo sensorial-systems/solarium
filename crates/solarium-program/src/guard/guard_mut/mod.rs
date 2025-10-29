@@ -5,7 +5,7 @@ use solana_program::msg;
 
 pub struct GuardMut<'a, T: BorshSerialize> {
     pub account: &'a AccountInfo<'a>,
-    pub resize: Option<(&'a Signer<'a>, &'a Program<'a>)>,
+    pub resize: Option<(Signer<'a>, Program<'a>)>,
     pub data: T,
 }
 
@@ -13,7 +13,7 @@ impl<'a, T: BorshSerialize> Drop for GuardMut<'a, T> {
     fn drop(&mut self) {
         if let Ok(serialize_data) = crate::prelude::borsh::to_vec(&self.data) {
             if let Some((signer, program)) = self.resize {
-                if let Err(e) = Account::<'a, T>::account_realloc_to(self.account, signer, program, serialize_data.len(), false) {
+                if let Err(e) = Account::<'a, T>::account_realloc_to(self.account, &signer, &program, serialize_data.len(), false) {
                     msg!("Error reallocating account: {}", e);
                 }
             }

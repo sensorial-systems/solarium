@@ -2,7 +2,7 @@ use crate::prelude::*;
 use crate::Check;
 use solana_program::{account_info::AccountInfo, program_error::ProgramError};
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Signer<'a> {
     /// The account info.
     pub info: &'a AccountInfo<'a>,

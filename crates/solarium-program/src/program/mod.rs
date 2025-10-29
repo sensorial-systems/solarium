@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use solana_program::{account_info::AccountInfo, program_error::ProgramError};
 
-
+#[derive(Clone, Copy)]
 pub struct Program<'a> {
     pub info: &'a AccountInfo<'a>,
 }
