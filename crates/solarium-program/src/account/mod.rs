@@ -32,22 +32,26 @@ impl<'a, T> Account<'a, T> {
         Ok(RefMut::map(data, |d| &mut d[..]))
     }
 
-    pub fn realloc_to(&self, payer: &Signer<'a>, system_program: &Program<'a>, new_len: usize, zero_init: bool) -> Result<()> {
+    pub fn account_realloc_to(account: &'a AccountInfo<'a>, payer: &Signer<'a>, system_program: &Program<'a>, new_len: usize, zero_init: bool) -> Result<()> {
         use solana_program::{rent::Rent, sysvar::Sysvar, program::invoke};
         // Top up lamports if needed to maintain rent exemption at new size
         let rent = Rent::get()?;
         let required = rent.minimum_balance(new_len);
-        let current = self.info.lamports();
+        let current = account.lamports();
         if required > current {
             let ix = solana_program::system_instruction::transfer(
                 &payer.info.signer_key().unwrap(),
-                self.info.key,
+                account.key,
                 required - current,
             );
-            invoke(&ix, &[payer.info.clone(), self.info.clone(), system_program.info.clone()])?;
+            invoke(&ix, &[payer.info.clone(), account.clone(), system_program.info.clone()])?;
         }
-        self.info.realloc(new_len, zero_init)?;
+        account.realloc(new_len, zero_init)?;
         Ok(())
+    }
+
+    pub fn realloc_to(&self, payer: &Signer<'a>, system_program: &Program<'a>, new_len: usize, zero_init: bool) -> Result<()> {
+        Self::account_realloc_to(self.info, payer, system_program, new_len, zero_init)
     }
 }
 
@@ -66,8 +70,19 @@ impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> f
     fn data(self) -> Self::Output {
         let account = self.info;
         let data = self.deserialize()?;
+        let resize = Default::default();
         
-        Ok(GuardMut { account, data })
+        Ok(GuardMut { account, data, resize })
+    }
+}
+
+impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
+    type Output = Result<GuardMut<'a, T>>;
+    fn resizeable_data(self, signer: &'a Signer<'a>, program: &'a Program<'a>) -> Self::Output {
+        let account = self.info;
+        let data = self.deserialize()?;
+        let resize = Some((signer, program));
+        Ok(GuardMut { account, data, resize })
     }
 }
 
