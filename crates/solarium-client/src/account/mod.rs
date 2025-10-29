@@ -14,6 +14,11 @@ impl<T> Account<T> {
         Self { address, connection, phantom }
     }
 
+    pub async fn balance(&self) -> Result<u64> {
+        let balance = self.connection.get_balance(&self.address).await?;
+        Ok(balance)
+    }
+
     pub fn address(&self) -> Pubkey {
         self.address
     }
