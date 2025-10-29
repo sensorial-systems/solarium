@@ -160,7 +160,7 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                 }
         
                 items.push(quote!(
-                    use #program_crate::*;
+                    pub use #program_crate::*;
 
                     #client_base
 
