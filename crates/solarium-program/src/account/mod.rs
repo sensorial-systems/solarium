@@ -78,10 +78,10 @@ impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> f
 
 impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
     type Output = Result<GuardMut<'a, T>>;
-    fn resizeable_data(self, signer: &'a Signer<'a>, program: &'a Program<'a>) -> Self::Output {
+    fn resizeable_data(self, payer: &'a Signer<'a>, program: &'a Program<'a>) -> Self::Output {
         let account = self.info;
         let data = self.deserialize()?;
-        let resize = Some((signer, program));
+        let resize = Some((payer, program));
         Ok(GuardMut { account, data, resize })
     }
 }

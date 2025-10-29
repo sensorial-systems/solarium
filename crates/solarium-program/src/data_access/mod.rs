@@ -9,5 +9,5 @@ pub trait DataAccess<'a, T: BorshSerialize + BorshDeserialize> {
 
 pub trait ResizableDataAccess<'a, T: BorshSerialize + BorshDeserialize> {
     type Output;
-    fn resizeable_data(self, signer: &'a Signer<'a>, program: &'a Program<'a>) -> Self::Output;
+    fn resizeable_data(self, payer: &'a Signer<'a>, program: &'a Program<'a>) -> Self::Output;
 }
