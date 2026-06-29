@@ -2243,11 +2243,14 @@ name = "ligen-rust-parser"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "cargo_toml",
  "ligen",
  "proc-macro2",
  "quote",
+ "serde_json",
  "syn 2.0.101",
+ "tokio",
 ]
 
 [[package]]
