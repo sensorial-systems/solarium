@@ -59,6 +59,6 @@ syn = "2.0.29"
 quote = "1.0.33"
 proc-macro2 = "1"
 
-ligen = { path = "../ligen/ligen" }
-ligen-rust = { path = "../ligen/ecosystem/rust" }
-ligen-anchor = { path = "../ligen/ecosystem/anchor" }
+ligen = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }
+ligen-rust = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }
+ligen-anchor = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }

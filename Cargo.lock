@@ -2134,6 +2134,7 @@ dependencies = [
 [[package]]
 name = "ligen"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "ligen-common",
  "ligen-idl",
@@ -2147,6 +2148,7 @@ dependencies = [
 [[package]]
 name = "ligen-anchor"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "ligen-anchor-generator",
  "ligen-anchor-parser",
@@ -2155,6 +2157,7 @@ dependencies = [
 [[package]]
 name = "ligen-anchor-generator"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "anchor-lang-idl-spec",
  "anyhow",
@@ -2167,6 +2170,7 @@ dependencies = [
 [[package]]
 name = "ligen-anchor-parser"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "anchor-lang-idl-spec",
  "ligen-idl",
@@ -2177,6 +2181,7 @@ dependencies = [
 [[package]]
 name = "ligen-common"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "anyhow",
  "derive_more",
@@ -2189,6 +2194,7 @@ dependencies = [
 [[package]]
 name = "ligen-idl"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "enum-as-inner",
  "heck 0.4.1",
@@ -2205,6 +2211,7 @@ dependencies = [
 [[package]]
 name = "ligen-ir"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "enum-as-inner",
  "is-tree",
@@ -2218,10 +2225,12 @@ dependencies = [
 [[package]]
 name = "ligen-macro"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 
 [[package]]
 name = "ligen-rust"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "ligen-rust-generator",
  "ligen-rust-parser",
@@ -2230,6 +2239,7 @@ dependencies = [
 [[package]]
 name = "ligen-rust-generator"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "anyhow",
  "ligen-idl",
@@ -2241,6 +2251,7 @@ dependencies = [
 [[package]]
 name = "ligen-rust-parser"
 version = "0.1.0"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2256,6 +2267,7 @@ dependencies = [
 [[package]]
 name = "ligen-traits"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "ligen-common",
  "ligen-idl",
@@ -2267,6 +2279,7 @@ dependencies = [
 [[package]]
 name = "ligen-transformer"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "async-trait",
  "handlebars",
@@ -2284,6 +2297,7 @@ dependencies = [
 [[package]]
 name = "ligen-utils"
 version = "0.1.18"
+source = "git+https://github.com/sensorial-systems/ligen?rev=1d739e4caaaa3a3724b845a9251780443924a1ab#1d739e4caaaa3a3724b845a9251780443924a1ab"
 dependencies = [
  "bimap",
  "ligen-common",
