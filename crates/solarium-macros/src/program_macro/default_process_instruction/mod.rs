@@ -42,10 +42,17 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::idl::Interface)
         let mut arguments = Vec::new();
         for input in &method.inputs {
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
-                let type_ = type_generator.generate(&input.type_, &config)?;
-                arguments.push(quote! {
-                    #type_::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
-                });
+                let inner_type = input.type_.path.last().generics.types.first().expect("Reference must have a target type");
+                let type_ = type_generator.generate(inner_type, &config)?;
+                if input.type_.is_mutable_reference() {
+                    arguments.push(quote! {
+                        &mut <#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                    });
+                } else {
+                    arguments.push(quote! {
+                        &<#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                    });
+                }
             } else {
                 let input_name = identifier_generator.generate(&input.identifier, &config)?;
                 let input_type = type_generator.generate(&input.type_, &config)?;
