@@ -17,6 +17,28 @@ pub struct Program {
 }
 
 impl Program {
+    pub async fn build(&self, workspace: &Workspace) -> Result<()> {
+        let output_directory = workspace.root.join("target").join("deploy");
+        std::fs::create_dir_all(&output_directory)
+            .context("Failed to create the program output directory")?;
+        println!("Building {}", self.name);
+        let status = tokio::process::Command::new("cargo")
+            .arg("build-sbf")
+            .arg("--manifest-path")
+            .arg(self.folder.join("Cargo.toml"))
+            .arg("--sbf-out-dir")
+            .arg(&output_directory)
+            .current_dir(&workspace.root)
+            .status()
+            .await
+            .with_context(|| format!("Failed to build {}", self.name))?;
+
+        if !status.success() {
+            anyhow::bail!("Failed to build {}", self.name);
+        }
+        Ok(())
+    }
+
     /// Get the program ID from a keypair file. If the keypair file does not exist, create a new one and return the public key.
     pub fn get_program_id_from_file(workspace: impl AsRef<Path>, name: impl AsRef<str>) -> Result<Pubkey> {
         let name = name.as_ref();
@@ -53,6 +75,7 @@ impl Program {
     }
 
     pub async fn deploy(&self, workspace: &Workspace) -> Result<()> {
+        println!("Deploying {} ({})", self.name, self.public_key);
         let program_so = workspace.root.join("target").join("deploy").join(format!("{}.so", self.name.to_snake_case()));
         let status = tokio::process::Command::new("solana")
             .arg("program")

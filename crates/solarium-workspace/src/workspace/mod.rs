@@ -28,6 +28,7 @@ impl Workspace {
             }
         }
         
+        programs.sort_by(|left, right| left.name.to_string().cmp(&right.name.to_string()));
         Ok(Workspace { root, programs })
     }
 
@@ -127,8 +128,12 @@ impl Workspace {
 
     pub async fn test(&self) -> Result<tokio::process::Child> {
         let child = self.dev().await?;
-        let output = tokio::process::Command::new("cargo")
-            .arg("test")
+        let mut command = tokio::process::Command::new("cargo");
+        command.arg("test").current_dir(&self.root);
+        for program in &self.programs {
+            command.arg("--package").arg(program.name.to_string());
+        }
+        let output = command
             .arg("--")
             .arg("--nocapture")
             .status()
@@ -143,16 +148,12 @@ impl Workspace {
     }
 
     pub async fn build(&self) -> Result<()> {
-        let status = tokio::process::Command::new("cargo")
-        .arg("build-sbf")
-        .status()
-        .await
-        .context("Failed to run cargo build")?;
-
-        if !status.success() {
-            anyhow::bail!("cargo build-sbf failed");
+        if self.programs.is_empty() {
+            anyhow::bail!("No Solarium programs found in {}", self.root.display());
         }
-
+        for program in &self.programs {
+            program.build(self).await?;
+        }
         Ok(())
     }
 
