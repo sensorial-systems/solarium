@@ -6,6 +6,7 @@ members = [
     "crates/solarium-cli",
     "crates/solarium-workspace",
     "crates/solarium-client",
+    "crates/solarium-transaction",
     "crates/solarium-program",
     "crates/solarium-rust-client-generator",
     "examples/solarium-example",
