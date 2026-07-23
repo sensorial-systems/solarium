@@ -21,7 +21,11 @@ pub struct Subscription<T: BorshDeserialize> {
 }
 
 impl<T: BorshDeserialize> Subscription<T> {
-    pub async fn account(connection: &Connection, address: Pubkey, commitment: Option<CommitmentConfig>) -> Result<Self> {
+    pub async fn account(
+        connection: &Connection,
+        address: Pubkey,
+        commitment: Option<CommitmentConfig>,
+    ) -> Result<Self> {
         let client = PubsubClient::new(&connection.ws_address).await?;
         let config = RpcAccountInfoConfig {
             encoding: Some(UiAccountEncoding::JsonParsed),
@@ -30,20 +34,24 @@ impl<T: BorshDeserialize> Subscription<T> {
         };
         // FIXME: This is a hack to make the client live for the lifetime of the subscription
         let client = Box::leak(Box::new(client));
-        let (receiver, unsubscribe_function) = client.account_subscribe(&address, Some(config)).await?;
+        let (receiver, unsubscribe_function) =
+            client.account_subscribe(&address, Some(config)).await?;
         let receiver = receiver
-            .filter_map(|account| async move {
-                account.value.data.decode()
-            })
-            .filter_map(|data| async move {
-                BorshDeserialize::deserialize(&mut &data[..]).ok()
-            });
+            .filter_map(|account| async move { account.value.data.decode() })
+            .filter_map(|data| async move { BorshDeserialize::deserialize(&mut &data[..]).ok() });
         let receiver = Box::pin(receiver);
 
-        Ok(Self { receiver, unsubscribe_function })
+        Ok(Self {
+            receiver,
+            unsubscribe_function,
+        })
     }
 
-    pub async fn program(connection: &Connection, program_id: Pubkey, commitment: Option<CommitmentConfig>) -> Result<Self> {
+    pub async fn program(
+        connection: &Connection,
+        program_id: Pubkey,
+        commitment: Option<CommitmentConfig>,
+    ) -> Result<Self> {
         let client = PubsubClient::new(&connection.ws_address).await?;
         let config = RpcProgramAccountsConfig {
             filters: None,
@@ -56,17 +64,17 @@ impl<T: BorshDeserialize> Subscription<T> {
         };
         // FIXME: This is a hack to make the client live for the lifetime of the subscription
         let client = Box::leak(Box::new(client));
-        let (receiver, unsubscribe_function) = client.program_subscribe(&program_id, Some(config)).await?;
+        let (receiver, unsubscribe_function) =
+            client.program_subscribe(&program_id, Some(config)).await?;
         let receiver = receiver
-            .filter_map(|account| async move {
-                account.value.account.data.decode()
-            })
-            .filter_map(|data| async move {
-                BorshDeserialize::deserialize(&mut &data[..]).ok()
-            });
+            .filter_map(|account| async move { account.value.account.data.decode() })
+            .filter_map(|data| async move { BorshDeserialize::deserialize(&mut &data[..]).ok() });
         let receiver = Box::pin(receiver);
 
-        Ok(Self { receiver, unsubscribe_function })
+        Ok(Self {
+            receiver,
+            unsubscribe_function,
+        })
     }
 
     pub async fn unsubscribe(self) {

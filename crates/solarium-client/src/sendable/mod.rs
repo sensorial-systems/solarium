@@ -1,4 +1,4 @@
-use solana_sdk::{transaction::Transaction, message::Message};
+use solana_sdk::{message::Message, transaction::Transaction};
 
 pub enum Sendable {
     Transaction(Transaction),

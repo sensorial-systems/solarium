@@ -42,9 +42,15 @@ impl From<Error> for solana_program::program_error::ProgramError {
     fn from(error: Error) -> Self {
         match error {
             Error::ProgramError(error) => error,
-            Error::IoError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            Error::ClientError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
-            Error::SubscriptionError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
+            Error::IoError(error) => {
+                solana_program::program_error::ProgramError::BorshIoError(error.to_string())
+            }
+            Error::ClientError(error) => {
+                solana_program::program_error::ProgramError::BorshIoError(error.to_string())
+            }
+            Error::SubscriptionError(error) => {
+                solana_program::program_error::ProgramError::BorshIoError(error.to_string())
+            }
         }
     }
 }

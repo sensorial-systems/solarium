@@ -3,24 +3,25 @@ pub mod result;
 
 mod account;
 mod connection;
-mod sendable;
-mod transaction;
 mod message;
 mod message_builder;
-mod subscription;
 mod program;
+mod sendable;
+mod subscription;
+mod transaction;
 pub mod utils;
 
-pub use connection::Connection;
 pub use account::Account;
-pub use sendable::Sendable;
-pub use transaction::Transaction;
+pub use connection::Connection;
 pub use message::Message;
 pub use message_builder::MessageBuilder;
-pub use subscription::Subscription;
 pub use program::Program;
+pub use sendable::Sendable;
+pub use subscription::Subscription;
+pub use transaction::Transaction;
 
 pub use solana_sdk::signature::Keypair;
 pub use solarium::Instruction;
 
 pub use solarium::*;
+pub use solarium_transaction as wire;

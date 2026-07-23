@@ -51,7 +51,6 @@ pub fn process(input: proc_macro::TokenStream) -> Result<proc_macro2::TokenStrea
     if let Some(program_address) = input.program_address {
         config.set("program-address", program_address.value());
     }
-    // Provide crate path (snake_case) for generated code to import program types
     let program_crate = program_name_str.replace('-', "_");
     config.set("program-crate", program_crate);
     let module = solarium_rust_client_generator::ModuleGenerator::default()

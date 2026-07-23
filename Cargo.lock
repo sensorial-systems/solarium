@@ -4905,6 +4905,7 @@ dependencies = [
  "solana-sdk",
  "solarium",
  "solarium-program",
+ "solarium-transaction",
  "thiserror 2.0.12",
  "tokio",
 ]

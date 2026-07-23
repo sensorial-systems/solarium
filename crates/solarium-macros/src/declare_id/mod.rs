@@ -1,5 +1,5 @@
-use proc_macro2::TokenStream;
 use anyhow::Result;
+use proc_macro2::TokenStream;
 use quote::quote;
 
 pub fn process(input: TokenStream) -> Result<TokenStream> {

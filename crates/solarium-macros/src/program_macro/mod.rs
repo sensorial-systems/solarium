@@ -1,8 +1,8 @@
 mod default_process_instruction;
 
 use anyhow::Result;
-use ligen_rust::parser::RustInterfaceParser;
 use ligen::transformer::Transformer;
+use ligen_rust::parser::RustInterfaceParser;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
@@ -11,9 +11,15 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
     let mut program_impl = input.clone();
 
     let parser = RustInterfaceParser::new();
-    let input = parser.transform(input, &ligen::transformer::Config::default()).expect("Failed to parse interface"); // FIXME: Remove expect
+    let input = parser
+        .transform(input, &ligen::transformer::Config::default())
+        .expect("Failed to parse interface"); // FIXME: Remove expect
 
-    let program_impl = if !input.methods.iter().any(|m| m.identifier == "process_instruction") {
+    let program_impl = if !input
+        .methods
+        .iter()
+        .any(|m| m.identifier == "process_instruction")
+    {
         default_process_instruction::generate(&mut program_impl, &input)?
     } else {
         program_impl.to_token_stream()

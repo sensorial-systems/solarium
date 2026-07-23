@@ -105,7 +105,7 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                     Some(address) => {
                         let address = self.literal_generator.generate(&address, config)?;
                         quote! {
-                            <solarium_client::prelude::Pubkey as std::str::FromStr>::from_str(#address)
+                            <solarium_client::wire::Pubkey as std::str::FromStr>::from_str(#address)
                                 .expect("invalid custom Solana program address")
                         }
                     }
@@ -172,14 +172,14 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                                 let is_signer =
                                     self.literal_generator.generate(&is_signer, config)?;
                                 accounts.push(quote! {
-                                    solarium_client::prelude::solana_sdk::instruction::AccountMeta {
+                                    solarium_client::wire::AccountMeta {
                                         is_signer: #is_signer,
                                         is_writable: #is_writable,
                                         pubkey: #name.into(),
                                     }
                                 });
                                 parameters.push(quote! {
-                                    #name: impl Into<solarium_client::prelude::Pubkey>
+                                    #name: impl Into<solarium_client::wire::Pubkey>
                                 });
                             } else {
                                 let type_ =
@@ -196,17 +196,17 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                             arguments.push(quote! { () });
                         }
                         let client_method = quote! {
-                            pub fn #instruction(#(#parameters),*) -> Result<solarium_client::prelude::solana_sdk::instruction::Instruction> {
+                            pub fn #instruction(#(#parameters),*) -> Result<solarium_client::wire::Instruction> {
                                 Self::#instruction_with_address(#program_id, #(#message_builder_arguments),*)
                             }
 
                             fn #instruction_with_address(
-                                program_address: solarium_client::prelude::Pubkey,
+                                program_address: solarium_client::wire::Pubkey,
                                 #(#parameters),*
-                            ) -> Result<solarium_client::prelude::solana_sdk::instruction::Instruction> {
+                            ) -> Result<solarium_client::wire::Instruction> {
                                 let instruction_data = solarium_client::Instruction::new(solarium::discriminator!(#discriminator), (#(#arguments),*,));
                                 let instruction_data = solarium_client::prelude::borsh::to_vec(&instruction_data)?;
-                                Ok(solarium_client::prelude::solana_sdk::instruction::Instruction::new_with_bytes(
+                                Ok(solarium_client::wire::Instruction::new_with_bytes(
                                     program_address,
                                     &instruction_data,
                                     vec![#(#accounts),*],

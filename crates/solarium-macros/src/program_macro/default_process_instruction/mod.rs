@@ -5,7 +5,10 @@ use ligen_rust::generator::{RustIdentifierGenerator, RustTypeGenerator};
 use quote::quote;
 
 #[allow(non_snake_case)]
-pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::idl::Interface) -> Result<proc_macro2::TokenStream> {
+pub fn generate(
+    program_impl: &mut syn::ItemImpl,
+    input: &ligen::idl::Interface,
+) -> Result<proc_macro2::TokenStream> {
     let program_name = program_impl.self_ty.clone();
     let config = Default::default();
     let identifier_generator = RustIdentifierGenerator::default();
@@ -22,10 +25,18 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::idl::Interface)
     for method in &input.methods {
         let identifier = &method.identifier;
         let MethodName = identifier_generator.generate(&identifier.to_pascal_case(), &config)?;
-        let METHOD_NAME = identifier_generator.generate(&identifier.to_screaming_snake_case(), &config)?;
+        let METHOD_NAME =
+            identifier_generator.generate(&identifier.to_screaming_snake_case(), &config)?;
         let method_name = identifier_generator.generate(&identifier.to_snake_case(), &config)?;
         let namespace = format!("global:{}", identifier);
-        let parameter_structure = identifier_generator.generate(&Identifier::from(format!("{}{}", input.identifier.to_string(), identifier.to_pascal_case())), &config)?;
+        let parameter_structure = identifier_generator.generate(
+            &Identifier::from(format!(
+                "{}{}",
+                input.identifier.to_string(),
+                identifier.to_pascal_case()
+            )),
+            &config,
+        )?;
         constants.push(quote! { pub const #METHOD_NAME: u64 = u64::from_le_bytes(solarium::discriminator!(#namespace)); });
         variants.push(quote! { #MethodName(#parameter_structure) });
         deserializers.push(quote! {
@@ -42,7 +53,14 @@ pub fn generate(program_impl: &mut syn::ItemImpl, input: &ligen::idl::Interface)
         let mut arguments = Vec::new();
         for input in &method.inputs {
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
-                let inner_type = input.type_.path.last().generics.types.first().expect("Reference must have a target type");
+                let inner_type = input
+                    .type_
+                    .path
+                    .last()
+                    .generics
+                    .types
+                    .first()
+                    .expect("Reference must have a target type");
                 let type_ = type_generator.generate(inner_type, &config)?;
                 if input.type_.is_mutable_reference() {
                     arguments.push(quote! {

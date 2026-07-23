@@ -27,6 +27,7 @@ solarium-program = { version = "0.1.0", path = "crates/solarium-program" }
 solarium-macros = { version = "0.1.0", path = "crates/solarium-macros" }
 solarium-workspace = { version = "0.1.0", path = "crates/solarium-workspace" }
 solarium-client = { version = "0.1.0", path = "crates/solarium-client" }
+solarium-transaction = { version = "0.1.0", path = "crates/solarium-transaction" }
 solarium-rust-client-generator = { version = "0.1.0", path = "crates/solarium-rust-client-generator" }
 
 solana-pubkey = { version = "2.1.0", features = ["borsh"] }
