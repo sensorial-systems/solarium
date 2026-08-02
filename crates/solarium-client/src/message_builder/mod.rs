@@ -3,7 +3,7 @@ use crate::prelude::*;
 use super::{Connection, Message, Transaction};
 
 use solana_sdk::signers::Signers;
-use solarium_transaction::Instruction;
+use solana_instruction::Instruction;
 
 pub struct MessageBuilder {
     pub connection: Connection,

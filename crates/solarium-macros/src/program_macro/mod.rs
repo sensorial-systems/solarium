@@ -26,12 +26,14 @@ pub fn process(input: syn::ItemImpl) -> Result<TokenStream> {
     };
 
     Ok(quote! {
-        #program_impl
-
         ::solarium::prelude::declare_id!(::solarium::current_program_id!());
 
+        #program_impl
+
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "no-entrypoint")))]
         solarium_program::prelude::solana_program::entrypoint!(process_instruction);
 
+        #[cfg(not(target_arch = "wasm32"))]
         pub fn process_instruction<'a>(
             program_id: &solarium_program::prelude::solana_program::pubkey::Pubkey, // Public key of the program
             accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo<'a>], // Data accounts, payer, etc.

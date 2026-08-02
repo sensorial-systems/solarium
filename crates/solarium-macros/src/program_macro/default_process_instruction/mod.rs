@@ -166,8 +166,11 @@ pub fn generate(
         #deserialize
         #serialize
         #program_definition
+
+        #[cfg(not(target_arch = "wasm32"))]
         #process_instruction
 
+        #[cfg(not(target_arch = "wasm32"))]
         #program_impl
     };
     Ok(output)

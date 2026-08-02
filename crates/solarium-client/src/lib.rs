@@ -24,4 +24,8 @@ pub use solana_sdk::signature::Keypair;
 pub use solarium::Instruction;
 
 pub use solarium::*;
-pub use solarium_transaction as wire;
+
+pub mod wire {
+    pub use solana_instruction::*;
+    pub use solana_pubkey::*;
+}

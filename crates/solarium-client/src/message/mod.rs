@@ -1,4 +1,4 @@
-use solarium_transaction::Instruction;
+use solana_instruction::Instruction;
 
 #[derive(Default)]
 pub struct Message {

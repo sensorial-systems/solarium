@@ -2,14 +2,14 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Program error: {0}")]
-    ProgramError(solana_program::program_error::ProgramError),
+    #[error("Program error: {0:?}")]
+    ProgramError(crate::ProgramError),
     #[error("IO error: {0}")]
     IoError(std::io::Error),
 }
 
-impl From<solana_program::program_error::ProgramError> for Error {
-    fn from(error: solana_program::program_error::ProgramError) -> Self {
+impl From<crate::ProgramError> for Error {
+    fn from(error: crate::ProgramError) -> Self {
         Error::ProgramError(error)
     }
 }
@@ -20,11 +20,14 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<Error> for solana_program::program_error::ProgramError {
+impl From<Error> for crate::ProgramError {
     fn from(error: Error) -> Self {
         match error {
             Error::ProgramError(error) => error,
-            Error::IoError(error) => solana_program::program_error::ProgramError::BorshIoError(error.to_string()),
+            #[cfg(not(target_arch = "wasm32"))]
+            Error::IoError(error) => crate::ProgramError::BorshIoError(error.to_string()),
+            #[cfg(target_arch = "wasm32")]
+            Error::IoError(_error) => crate::ProgramError::BorshIoError,
         }
     }
 }

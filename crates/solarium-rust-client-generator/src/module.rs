@@ -227,6 +227,8 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
 
                 items.push(quote!(
                     pub use #program_crate::*;
+                    #[allow(unused_imports)]
+                    use solarium_client::prelude::*;
 
                     #client_base
 

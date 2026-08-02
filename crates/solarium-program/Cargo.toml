@@ -9,6 +9,13 @@ authors.workspace = true
 
 [dependencies]
 solarium.workspace = true
-solana-program.workspace = true
 shrinkwraprs.workspace = true
 thiserror.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+solana-program.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+solana-pubkey.workspace = true
+solana-sha256-hasher = "2.1.0"
+curve25519-dalek = "4.1"

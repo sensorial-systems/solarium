@@ -10,7 +10,8 @@ authors.workspace = true
 [dependencies]
 solarium.workspace = true
 solarium-program.workspace = true
-solarium-transaction.workspace = true
+solana-pubkey.workspace = true
+solana-instruction.workspace = true
 solana-sdk.workspace = true
 solana-client.workspace = true
 solana-account-decoder-client-types.workspace = true
