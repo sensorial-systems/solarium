@@ -3,7 +3,6 @@ use std::pin::Pin;
 use crate::prelude::*;
 use crate::Connection;
 
-use borsh::BorshDeserialize;
 use futures::future::BoxFuture;
 use futures::{Stream, StreamExt};
 use shrinkwraprs::Shrinkwrap;
@@ -14,13 +13,13 @@ use solana_sdk::commitment_config::CommitmentConfig;
 
 #[derive(Shrinkwrap)]
 #[shrinkwrap(mutable)]
-pub struct Subscription<T: BorshDeserialize> {
+pub struct Subscription<T: Discriminator> {
     #[shrinkwrap(main_field)]
     pub receiver: Pin<Box<dyn Stream<Item = T>>>,
     unsubscribe_function: Box<dyn FnOnce() -> BoxFuture<'static, ()> + Send>,
 }
 
-impl<T: BorshDeserialize> Subscription<T> {
+impl<T: Discriminator> Subscription<T> {
     pub async fn account(
         connection: &Connection,
         address: Pubkey,
@@ -38,7 +37,7 @@ impl<T: BorshDeserialize> Subscription<T> {
             client.account_subscribe(&address, Some(config)).await?;
         let receiver = receiver
             .filter_map(|account| async move { account.value.data.decode() })
-            .filter_map(|data| async move { BorshDeserialize::deserialize(&mut &data[..]).ok() });
+            .filter_map(|data| async move { T::from_account_bytes(&data).ok() });
         let receiver = Box::pin(receiver);
 
         Ok(Self {
@@ -68,7 +67,7 @@ impl<T: BorshDeserialize> Subscription<T> {
             client.program_subscribe(&program_id, Some(config)).await?;
         let receiver = receiver
             .filter_map(|account| async move { account.value.account.data.decode() })
-            .filter_map(|data| async move { BorshDeserialize::deserialize(&mut &data[..]).ok() });
+            .filter_map(|data| async move { T::from_account_bytes(&data).ok() });
         let receiver = Box::pin(receiver);
 
         Ok(Self {

@@ -127,7 +127,8 @@ async fn solana() -> Result<()> {
 
     // Fetch raw account data and validate payload contents
     let account_data = program.connection().get_account_data(&file_pda.address()).await?;
-    let header_len = borsh::to_vec(&onchain).unwrap().len();
+    // The payload starts after the tag saying which account this is and the header itself.
+    let header_len = solarium::DISCRIMINATOR_LEN + borsh::to_vec(&onchain).unwrap().len();
     let payload = &account_data[header_len..header_len + (onchain.file_size as usize)];
     assert_eq!(payload, &file_bytes[..]);
     println!("Verified payload and CRC successfully.");

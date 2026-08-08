@@ -4935,9 +4935,11 @@ dependencies = [
 name = "solarium-program"
 version = "0.1.0"
 dependencies = [
+ "curve25519-dalek 4.1.3",
  "shrinkwraprs",
  "solana-program",
  "solana-pubkey",
+ "solana-sha256-hasher",
  "solarium",
  "thiserror 2.0.12",
 ]

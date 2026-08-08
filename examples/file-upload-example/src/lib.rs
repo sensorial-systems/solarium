@@ -83,6 +83,14 @@ pub struct AllocateArgs {
     pub space: u64,
 }
 
+/// Where the payload starts: the tag saying which account this is, then the header.
+///
+/// Every offset into the account is measured from here, so it counts the tag — the payload follows
+/// the header as it is stored, not as the struct alone would serialize.
+fn account_header_len(header: &FileAccount) -> usize {
+    solarium::DISCRIMINATOR_LEN + solarium::prelude::borsh::to_vec(header).unwrap().len()
+}
+
 #[program]
 impl FileUploadExample {
     pub fn initialize<'a>(
@@ -108,7 +116,7 @@ impl FileUploadExample {
     pub fn upload_chunk(&self, _payer: &Signer, file: &mut Account<FileAccount>, args: UploadChunkArgs) -> Result<()> {
         msg!("Upload chunk at offset {} ({} bytes)", args.offset, args.data.len());
         let acc_ro = file.data()?;
-        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let header_size = account_header_len(&acc_ro);
         let payload_len = acc_ro.payload_len as usize;
         let file_size = acc_ro.file_size as usize;
         drop(acc_ro);
@@ -130,7 +138,7 @@ impl FileUploadExample {
         if acc_ro.payload_len as u64 != acc_ro.file_size {
             return Err(solana_program::program_error::ProgramError::InvalidAccountData.into());
         }
-        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let header_size = account_header_len(&acc_ro);
         let remaining = acc_ro.file_size as usize;
         drop(acc_ro);
 
@@ -168,7 +176,7 @@ impl FileUploadExample {
         }
 
         let acc_ro = file.data()?;
-        let header_size = solarium::prelude::borsh::to_vec(&*acc_ro).unwrap().len();
+        let header_size = account_header_len(&acc_ro);
         let current_len = acc_ro.payload_len as usize;
         let file_size = acc_ro.file_size as usize;
         drop(acc_ro);

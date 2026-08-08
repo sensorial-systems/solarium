@@ -47,15 +47,15 @@ impl<T> Account<T> {
     /// TODO: Unify this in a single API for Program and Client.
     pub async fn data(&self) -> Result<T>
     where
-        T: BorshDeserialize,
+        T: Discriminator,
     {
         let data = self.connection.get_account_data(&self.address).await?;
-        Ok(BorshDeserialize::deserialize(&mut &data[..])?)
+        Ok(T::from_account_bytes(&data)?)
     }
 
     pub async fn subscribe(&self) -> Result<Subscription<T>>
     where
-        T: BorshDeserialize,
+        T: Discriminator,
     {
         self.subscribe_with_commitment(CommitmentConfig::finalized())
             .await
@@ -66,7 +66,7 @@ impl<T> Account<T> {
         commitment: CommitmentConfig,
     ) -> Result<Subscription<T>>
     where
-        T: BorshDeserialize,
+        T: Discriminator,
     {
         Ok(Subscription::account(&self.connection, self.address, Some(commitment)).await?)
     }

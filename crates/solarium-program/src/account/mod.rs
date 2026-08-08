@@ -14,12 +14,16 @@ impl<'a, T> Account<'a, T> {
         Self { info, phantom: Default::default() }
     }
 
+    /// Reads this account, refusing one of another type.
+    ///
+    /// The tag is checked rather than assumed: the runtime hands a program whatever accounts the
+    /// transaction named, and without the check an account of one of the program's other types
+    /// would be read as this one wherever its bytes happened to fit.
     pub fn deserialize(&self) -> Result<T>
-    where T: borsh::BorshDeserialize
+    where T: Discriminator
     {
         let data = self.info.try_borrow_data()?;
-        let data = &mut &data[..];
-        Ok(borsh::BorshDeserialize::deserialize(data)?)
+        Ok(T::from_account_bytes(&data)?)
     }
 
     pub fn bytes(&self) -> Result<Ref<'a, [u8]>> {
@@ -65,7 +69,7 @@ impl<'a, T> TryFrom<&'a AccountInfo<'a>> for Account<'a, T> {
 }
 
 
-impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> for &mut Account<'a, T> {
+impl<'a, T: Discriminator> DataAccess<'a, T> for &mut Account<'a, T> {
     type Output = Result<GuardMut<'a, T>>;
     fn data(self) -> Self::Output {
         let account = self.info;
@@ -76,7 +80,7 @@ impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> f
     }
 }
 
-impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
+impl<'a, T: Discriminator> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
     type Output = Result<GuardMut<'a, T>>;
     fn resizeable_data(self, payer: &Signer<'a>, program: &Program<'a>) -> Self::Output {
         let account = self.info;
@@ -86,7 +90,7 @@ impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> ResizableDataAccess
     }
 }
 
-impl<'a, T: borsh::BorshSerialize + borsh::BorshDeserialize> DataAccess<'a, T> for &Account<'a, T> {
+impl<'a, T: Discriminator> DataAccess<'a, T> for &Account<'a, T> {
     type Output = Result<Guard<'a, T>>;
     fn data(self) -> Self::Output {
         let account = self.info;
