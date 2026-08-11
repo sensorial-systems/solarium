@@ -59,6 +59,6 @@ syn = "2.0.29"
 quote = "1.0.33"
 proc-macro2 = "1"
 
-ligen = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }
-ligen-rust = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }
-ligen-anchor = { git = "https://github.com/sensorial-systems/ligen", rev = "1d739e4caaaa3a3724b845a9251780443924a1ab" }
+ligen = { git = "https://github.com/sensorial-systems/ligen", rev = "2bbe045c95908ad14f386b791a160ea2433ece31" }
+ligen-rust = { git = "https://github.com/sensorial-systems/ligen", rev = "2bbe045c95908ad14f386b791a160ea2433ece31" }
+ligen-anchor = { git = "https://github.com/sensorial-systems/ligen", rev = "2bbe045c95908ad14f386b791a160ea2433ece31" }
