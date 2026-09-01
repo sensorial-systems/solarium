@@ -4,8 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 
+[features]
+default = ["solana-program-backend"]
+solana-program-backend = ["solarium-program/solana-program-backend"]
+pinocchio = ["solarium-program/pinocchio"]
+no-entrypoint = []
+
 [dependencies]
-solarium-program.workspace = true
+solarium-program = { path = "../../crates/solarium-program", default-features = false }
 solarium.workspace = true
 
 [lib]

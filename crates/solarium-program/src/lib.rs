@@ -2,27 +2,71 @@ pub mod prelude;
 
 pub mod result;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(feature = "pinocchio", feature = "solana-program-backend"))]
+compile_error!(r#"features "pinocchio" and "solana-program-backend" are mutually exclusive"#);
+#[cfg(all(
+    not(target_arch = "wasm32"),
+    not(feature = "pinocchio"),
+    not(feature = "solana-program-backend")
+))]
+compile_error!(r#"select either the "solana-program-backend" or "pinocchio" feature"#);
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod account;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/account.rs"]
+mod account;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+mod account_info;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod account_initialization;
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/account_initialization.rs"]
+mod account_initialization;
+
 #[cfg(not(target_arch = "wasm32"))]
 mod check;
-#[cfg(not(target_arch = "wasm32"))]
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod context;
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/context.rs"]
+mod context;
+
 #[cfg(not(target_arch = "wasm32"))]
 mod data_access;
-#[cfg(not(target_arch = "wasm32"))]
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod guard;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/guard.rs"]
+mod guard;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod program;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/program.rs"]
+mod program;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod signer;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/signer.rs"]
+mod signer;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod system_instruction;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/mod.rs"]
+mod pinocchio_backend;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use account::*;
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+pub use account_info::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use account_initialization::*;
 #[cfg(not(target_arch = "wasm32"))]
@@ -38,14 +82,23 @@ pub use program::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use signer::*;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 pub use solana_program;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+pub use solana_program::account_info::AccountInfo;
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 pub use solana_program::msg;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 pub use solana_program::program_error::ProgramError;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 pub use solana_program::pubkey::Pubkey;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+pub use pinocchio;
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+pub use pinocchio_backend::{AccountInfo, ProgramError, Pubkey};
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+pub use solana_program_log::log as msg;
 
 #[cfg(target_arch = "wasm32")]
 pub mod msg {
@@ -119,9 +172,15 @@ impl<'a> Signer<'a> {
 pub struct Program<'a>(std::marker::PhantomData<&'a ()>);
 
 pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
     {
         solana_program::pubkey::Pubkey::find_program_address(seeds, program_id)
+    }
+    #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+    {
+        let program_id = pinocchio_backend::address(program_id);
+        let (address, bump) = solana_address::Address::find_program_address(seeds, &program_id);
+        (pinocchio_backend::pubkey(&address), bump)
     }
     #[cfg(target_arch = "wasm32")]
     {
@@ -139,9 +198,16 @@ pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8
 }
 
 pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pubkey, ()> {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
     {
         solana_program::pubkey::Pubkey::create_program_address(seeds, program_id).map_err(|_| ())
+    }
+    #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+    {
+        let program_id = pinocchio_backend::address(program_id);
+        solana_address::Address::create_program_address(seeds, &program_id)
+            .map(|address| pinocchio_backend::pubkey(&address))
+            .map_err(|_| ())
     }
     #[cfg(target_arch = "wasm32")]
     {

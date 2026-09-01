@@ -1,8 +1,11 @@
 #![allow(unexpected_cfgs)]
 
-use solana_program::msg;
 use solarium::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
+use solarium_program::msg;
+#[cfg(not(target_arch = "wasm32"))]
 use solarium_program::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
 use solarium_program::{Account, Program, Signer};
 
 /// Example PDA account storing a simple message
@@ -41,7 +44,7 @@ impl Example {
         data: &mut Account<ExampleData>,
         message: String,
     ) -> Result<()> {
-        msg!("Setting message: {}", message);
+        msg!("Setting message: {}", message.as_str());
         data.data()?.message = message;
         Ok(())
     }

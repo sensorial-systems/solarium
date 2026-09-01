@@ -8,8 +8,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 solarium.workspace = true
-solarium-program.workspace = true
-solana-program.workspace = true
+solarium-program = { path = "../../crates/solarium-program", default-features = false }
 borsh.workspace = true
 bytemuck.workspace = true
 bytemuck_derive.workspace = true
@@ -21,6 +20,9 @@ anyhow.workspace = true
 futures.workspace = true
 
 [features]
+default = ["solana-program-backend"]
+solana-program-backend = ["solarium-program/solana-program-backend"]
+pinocchio = ["solarium-program/pinocchio"]
 no-entrypoint = []
 
 

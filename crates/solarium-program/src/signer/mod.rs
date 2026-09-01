@@ -16,8 +16,7 @@ impl<'a> Signer<'a> {
     }
 
     pub fn transfer<T>(&self, amount: u64, to: &Account<'a, T>) -> Result<()> {
-        let instruction =
-            crate::system_instruction::transfer(&self.info.key, &to.info.key, amount);
+        let instruction = crate::system_instruction::transfer(&self.info.key, &to.info.key, amount);
         invoke(&instruction, &[self.info.clone(), to.info.clone()])?;
         Ok(())
     }

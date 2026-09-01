@@ -1,11 +1,15 @@
 #![allow(unexpected_cfgs)]
 
-use solana_program::msg;
 use solarium::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
+use solarium_program::msg;
+#[cfg(not(target_arch = "wasm32"))]
 use solarium_program::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
 use solarium_program::{Account, Program, Signer};
 
 // Precomputed CRC32 (IEEE) lookup table using polynomial 0xEDB88320
+#[cfg(not(target_arch = "wasm32"))]
 const CRC32_TABLE: [u32; 256] = [
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
     0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
@@ -92,6 +96,7 @@ pub struct AllocateArgs {
 ///
 /// Every offset into the account is measured from here, so it counts the tag — the payload follows
 /// the header as it is stored, not as the struct alone would serialize.
+#[cfg(not(target_arch = "wasm32"))]
 fn account_header_len(header: &FileAccount) -> usize {
     solarium::DISCRIMINATOR_LEN + solarium::prelude::borsh::to_vec(header).unwrap().len()
 }
@@ -137,7 +142,7 @@ impl FileUploadExample {
 
         let end = args.offset as usize + args.data.len();
         if end > payload_len || end > file_size {
-            return Err(solana_program::program_error::ProgramError::InvalidInstructionData.into());
+            return Err(ProgramError::InvalidInstructionData.into());
         }
         let mut bytes = file.bytes_mut()?;
         let start = header_size + args.offset as usize;
@@ -150,7 +155,7 @@ impl FileUploadExample {
         msg!("Check CRC32");
         let acc_ro = file.data()?;
         if acc_ro.payload_len as u64 != acc_ro.file_size {
-            return Err(solana_program::program_error::ProgramError::InvalidAccountData.into());
+            return Err(ProgramError::InvalidAccountData.into());
         }
         let header_size = account_header_len(&acc_ro);
         let remaining = acc_ro.file_size as usize;
@@ -171,7 +176,7 @@ impl FileUploadExample {
         let mut acc_mut = file.data()?;
         acc_mut.written_crc32 = computed_crc;
         if acc_mut.written_crc32 != acc_mut.expected_crc32 {
-            return Err(solana_program::program_error::ProgramError::InvalidAccountData.into());
+            return Err(ProgramError::InvalidAccountData.into());
         }
         Ok(())
     }
@@ -186,7 +191,7 @@ impl FileUploadExample {
         // no-op
 
         if additional_bytes == 0 || additional_bytes > 10_240 {
-            return Err(solana_program::program_error::ProgramError::InvalidInstructionData.into());
+            return Err(ProgramError::InvalidInstructionData.into());
         }
 
         let acc_ro = file.data()?;

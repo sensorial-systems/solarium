@@ -12,11 +12,19 @@ solarium.workspace = true
 shrinkwraprs.workspace = true
 thiserror.workspace = true
 solana-sdk-ids = "2.2.1"
-
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-solana-program.workspace = true
+solana-program = { workspace = true, optional = true }
+pinocchio = { workspace = true, optional = true }
+pinocchio-system = { workspace = true, optional = true }
+solana-program-log = { workspace = true, optional = true }
+solana-address = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 solana-pubkey.workspace = true
 solana-sha256-hasher = "2.3.0"
 curve25519-dalek = "4.1"
+
+[features]
+default = ["solana-program-backend"]
+solana-program-backend = ["dep:solana-program"]
+pinocchio = ["dep:pinocchio", "dep:pinocchio-system", "dep:solana-program-log", "dep:solana-address"]

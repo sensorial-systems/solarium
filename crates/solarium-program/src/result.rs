@@ -24,8 +24,10 @@ impl From<Error> for crate::ProgramError {
     fn from(error: Error) -> Self {
         match error {
             Error::ProgramError(error) => error,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
             Error::IoError(error) => crate::ProgramError::BorshIoError(error.to_string()),
+            #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+            Error::IoError(_error) => crate::ProgramError::BorshIoError,
             #[cfg(target_arch = "wasm32")]
             Error::IoError(_error) => crate::ProgramError::BorshIoError,
         }

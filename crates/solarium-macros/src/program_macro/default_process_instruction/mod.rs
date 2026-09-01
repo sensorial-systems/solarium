@@ -22,6 +22,7 @@ pub fn generate(
     let mut serializers = Vec::new();
     let mut instructions_parameters = Vec::new();
     let mut calls = Vec::new();
+    let mut calls_pinocchio = Vec::new();
     for method in &input.methods {
         let identifier = &method.identifier;
         let MethodName = identifier_generator.generate(&identifier.to_pascal_case(), &config)?;
@@ -51,6 +52,7 @@ pub fn generate(
 
         let mut inputs = Vec::new();
         let mut arguments = Vec::new();
+        let mut arguments_pinocchio = Vec::new();
         for input in &method.inputs {
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
                 let inner_type = input
@@ -66,9 +68,15 @@ pub fn generate(
                     arguments.push(quote! {
                         &mut <#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
                     });
+                    arguments_pinocchio.push(quote! {
+                        &mut <#type_>::try_from(accounts.next().ok_or(solarium_program::ProgramError::NotEnoughAccountKeys)?)?
+                    });
                 } else {
                     arguments.push(quote! {
                         &<#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                    });
+                    arguments_pinocchio.push(quote! {
+                        &<#type_>::try_from(accounts.next().ok_or(solarium_program::ProgramError::NotEnoughAccountKeys)?)?
                     });
                 }
             } else {
@@ -78,6 +86,9 @@ pub fn generate(
                     #input_name: #input_type
                 });
                 arguments.push(quote! {
+                    arguments.#input_name
+                });
+                arguments_pinocchio.push(quote! {
                     arguments.#input_name
                 });
             }
@@ -94,6 +105,11 @@ pub fn generate(
         calls.push(quote! {
             #instruction_name::#MethodName(arguments) => {
                 self.#method_name(#(#arguments),*)?;
+            }
+        });
+        calls_pinocchio.push(quote! {
+            #instruction_name::#MethodName(arguments) => {
+                self.#method_name(#(#arguments_pinocchio),*)?;
             }
         });
     }
@@ -155,6 +171,29 @@ pub fn generate(
         }
     };
 
+    let process_instruction_pinocchio = quote! {
+        impl #program_name {
+            pub fn process_instruction(
+                &self,
+                program_id: &solarium_program::prelude::pinocchio::Address,
+                accounts: &mut [solarium_program::prelude::pinocchio::AccountView],
+                instruction_data: &[u8],
+            ) -> Result<()> {
+                let program_id = solarium_program::Pubkey::new_from_array(program_id.to_bytes());
+                check_id(&program_id)
+                    .then_some(())
+                    .ok_or(solarium_program::ProgramError::IncorrectProgramId)?;
+                let accounts = &mut accounts.iter_mut();
+                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data)
+                    .map_err(|_| solarium_program::ProgramError::InvalidInstructionData)?
+                {
+                    #(#calls_pinocchio),*
+                }
+                Ok(())
+            }
+        }
+    };
+
     let program_definition = quote! {
         pub struct #program_name;
     };
@@ -167,8 +206,11 @@ pub fn generate(
         #serialize
         #program_definition
 
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(all(not(target_arch = "wasm32"), not(feature = "pinocchio")))]
         #process_instruction
+
+        #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+        #process_instruction_pinocchio
 
         #[cfg(not(target_arch = "wasm32"))]
         #program_impl
