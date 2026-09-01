@@ -20,14 +20,19 @@ impl Workspace {
         for directory in walkdir::WalkDir::new(&root) {
             let entry = directory.context("Failed to read directory")?;
             let entry = entry.path();
-            if entry.is_file() && entry.file_name().map(|file_name| file_name.to_str() == Some("Cargo.toml")).unwrap_or(false) {
+            if entry.is_file()
+                && entry
+                    .file_name()
+                    .map(|file_name| file_name.to_str() == Some("Cargo.toml"))
+                    .unwrap_or(false)
+            {
                 let folder = entry.parent().context("Failed to get parent directory")?;
                 if let Ok(program) = Program::try_from(&root, folder.to_path_buf()) {
                     programs.push(program);
                 }
             }
         }
-        
+
         programs.sort_by(|left, right| left.name.to_string().cmp(&right.name.to_string()));
         Ok(Workspace { root, programs })
     }
@@ -35,7 +40,7 @@ impl Workspace {
     pub fn new(name: impl AsRef<str>) -> Result<Self> {
         let current_dir = std::env::current_dir().context("Failed to get current directory")?;
         let workspace_path = current_dir.join(name.as_ref());
-        
+
         std::process::Command::new("git")
             .arg("init")
             .arg(&workspace_path)
@@ -43,17 +48,24 @@ impl Workspace {
             .status()
             .context("Failed to initialize git repository")?;
 
-        std::fs::write(workspace_path.join(".gitignore"), include_str!("templates/workspace/.gitignore.template")).context("Failed to write .gitignore")?;
+        std::fs::write(
+            workspace_path.join(".gitignore"),
+            include_str!("templates/workspace/.gitignore.template"),
+        )
+        .context("Failed to write .gitignore")?;
 
         let cargo_toml_path = workspace_path.join("Cargo.toml");
-        let cargo_toml_content = include_str!("templates/workspace/Cargo.toml.template").replace("{solarium_version}", env!("CARGO_PKG_VERSION"));
-        std::fs::write(&cargo_toml_path, cargo_toml_content).context("Failed to write Cargo.toml")?;
+        let cargo_toml_content = include_str!("templates/workspace/Cargo.toml.template")
+            .replace("{solarium_version}", env!("CARGO_PKG_VERSION"));
+        std::fs::write(&cargo_toml_path, cargo_toml_content)
+            .context("Failed to write Cargo.toml")?;
         Self::from_root(&workspace_path)
     }
 
     pub fn current() -> Result<Self> {
         let current_dir = std::env::current_dir().context("Failed to get current directory")?;
-        let root = Cargo::get_project_root_from_path(&current_dir).context("Failed to get project root")?;
+        let root = Cargo::get_project_root_from_path(&current_dir)
+            .context("Failed to get project root")?;
         Self::from_root(&root)
     }
 
@@ -68,18 +80,26 @@ impl Workspace {
             .status()
             .context("Failed to create new program")?;
         let program_name = Identifier::new(name.as_ref()).to_pascal_case();
-        
+
         // Write lib.rs
-        let lib_content = format!(include_str!("templates/program/src/lib.rs.template"), program_name = program_name);
+        let lib_content = format!(
+            include_str!("templates/program/src/lib.rs.template"),
+            program_name = program_name
+        );
         let lib_path = root.join("src/lib.rs");
         std::fs::write(&lib_path, lib_content)
             .context(format!("Failed to write {}", lib_path.display()))?;
-        
+
         // Write Cargo.toml
         let cargo_toml_path = root.join("Cargo.toml");
-        let mut cargo_toml_content = std::fs::read_to_string(&cargo_toml_path).context("Failed to read Cargo.toml")?;
-        cargo_toml_content = cargo_toml_content.replace("[dependencies]\n", "[dependencies]\nsolarium.workspace = true\n");
-        std::fs::write(&cargo_toml_path, cargo_toml_content).context("Failed to write Cargo.toml")?;
+        let mut cargo_toml_content =
+            std::fs::read_to_string(&cargo_toml_path).context("Failed to read Cargo.toml")?;
+        cargo_toml_content = cargo_toml_content.replace(
+            "[dependencies]\n",
+            "[dependencies]\nsolarium.workspace = true\n",
+        );
+        std::fs::write(&cargo_toml_path, cargo_toml_content)
+            .context("Failed to write Cargo.toml")?;
 
         Ok(())
     }
@@ -97,7 +117,8 @@ impl Workspace {
             .arg("-f")
             .arg("solana-test-validator")
             .status()
-            .await {
+            .await
+        {
             if child.success() {
                 println!("Restarting solana-test-validator");
                 tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
@@ -112,7 +133,7 @@ impl Workspace {
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn()?;
-        
+
         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
         let mut attempts = 3;
         while let Err(_e) = self.deploy().await {

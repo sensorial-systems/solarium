@@ -5,36 +5,36 @@ pub mod result;
 #[cfg(not(target_arch = "wasm32"))]
 mod account;
 #[cfg(not(target_arch = "wasm32"))]
-mod signer;
-#[cfg(not(target_arch = "wasm32"))]
-mod program;
-#[cfg(not(target_arch = "wasm32"))]
 mod account_initialization;
+#[cfg(not(target_arch = "wasm32"))]
+mod check;
 #[cfg(not(target_arch = "wasm32"))]
 mod context;
 #[cfg(not(target_arch = "wasm32"))]
-mod guard;
-#[cfg(not(target_arch = "wasm32"))]
 mod data_access;
 #[cfg(not(target_arch = "wasm32"))]
-mod check;
+mod guard;
+#[cfg(not(target_arch = "wasm32"))]
+mod program;
+#[cfg(not(target_arch = "wasm32"))]
+mod signer;
 
-#[cfg(not(target_arch = "wasm32"))]
-pub use data_access::*;
-#[cfg(not(target_arch = "wasm32"))]
-pub use guard::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use account::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use account_initialization::*;
 #[cfg(not(target_arch = "wasm32"))]
-pub use signer::*;
-#[cfg(not(target_arch = "wasm32"))]
-pub use program::*;
+pub use check::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use context::*;
 #[cfg(not(target_arch = "wasm32"))]
-pub use check::*;
+pub use data_access::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use guard::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use program::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use signer::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use solana_program;
@@ -151,7 +151,10 @@ pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pu
         hasher.hash(b"ProgramDerivedAddress");
         let hash = hasher.result();
         let bytes: [u8; 32] = hash.to_bytes();
-        if curve25519_dalek::edwards::CompressedEdwardsY(bytes).decompress().is_some() {
+        if curve25519_dalek::edwards::CompressedEdwardsY(bytes)
+            .decompress()
+            .is_some()
+        {
             Err(())
         } else {
             Ok(Pubkey::new_from_array(bytes))

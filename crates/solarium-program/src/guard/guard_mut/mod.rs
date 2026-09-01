@@ -1,4 +1,4 @@
-use crate::{Account, Program, Signer, prelude::*};
+use crate::{prelude::*, Account, Program, Signer};
 
 use solana_program::account_info::AccountInfo;
 use solana_program::msg;
@@ -14,13 +14,19 @@ impl<'a, T: Discriminator> Drop for GuardMut<'a, T> {
         // Written back with its tag, so the account still says what it is after an edit.
         if let Ok(serialize_data) = self.data.to_account_bytes() {
             if let Some((signer, program)) = self.resize {
-                if let Err(e) = Account::<'a, T>::account_realloc_to(self.account, &signer, &program, serialize_data.len(), false) {
+                if let Err(e) = Account::<'a, T>::account_realloc_to(
+                    self.account,
+                    &signer,
+                    &program,
+                    serialize_data.len(),
+                    false,
+                ) {
                     msg!("Error reallocating account: {}", e);
                 }
             }
             if let Ok(mut data) = self.account.try_borrow_mut_data() {
                 let len = core::cmp::min(serialize_data.len(), data.len());
-                data[..len].copy_from_slice(&serialize_data[..len]);    
+                data[..len].copy_from_slice(&serialize_data[..len]);
             }
         }
     }

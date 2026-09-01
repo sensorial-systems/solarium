@@ -1,5 +1,5 @@
-use crate::Account;
 use crate::prelude::*;
+use crate::Account;
 use crate::Check;
 use solana_program::program::invoke;
 use solana_program::{account_info::AccountInfo, program_error::ProgramError};
@@ -16,11 +16,8 @@ impl<'a> Signer<'a> {
     }
 
     pub fn transfer<T>(&self, amount: u64, to: &Account<'a, T>) -> Result<()> {
-        let instruction = solana_program::system_instruction::transfer(
-            &self.info.key,
-            &to.info.key,
-            amount,
-        );
+        let instruction =
+            solana_program::system_instruction::transfer(&self.info.key, &to.info.key, amount);
         invoke(&instruction, &[self.info.clone(), to.info.clone()])?;
         Ok(())
     }

@@ -1,5 +1,5 @@
-mod guard_mut;
 mod guard;
+mod guard_mut;
 
-pub use guard_mut::*;
 pub use guard::*;
+pub use guard_mut::*;

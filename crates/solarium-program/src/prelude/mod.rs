@@ -1,6 +1,6 @@
-pub use solarium::prelude::*;
 pub use crate::result::*;
 pub use crate::PubkeyExt;
+pub use solarium::prelude::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use solana_program;

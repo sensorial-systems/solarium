@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::{Signer, Account, Program};
+use crate::{Account, Program, Signer};
 
 use solana_program::program::invoke_signed;
 use solana_program::pubkey::Pubkey;
@@ -11,9 +11,10 @@ pub trait AccountInitialization<'a, T> {
         self,
         payer: &Signer<'a>,
         seeds: S,
-        system_program: &Program<'a>
+        system_program: &Program<'a>,
     ) -> Result<()>
-    where T: Default;
+    where
+        T: Default;
 
     fn initialize_with_data<S: Seeds>(
         self,
@@ -22,7 +23,8 @@ pub trait AccountInitialization<'a, T> {
         system_program: &Program<'a>,
         initial: T,
     ) -> Result<()>
-    where T: Discriminator;
+    where
+        T: Discriminator;
 
     fn allocate<S: Seeds>(
         self,
@@ -38,9 +40,10 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         self,
         payer: &Signer<'a>,
         seeds: S,
-        system_program: &Program<'a>
+        system_program: &Program<'a>,
     ) -> Result<()>
-    where T: Default
+    where
+        T: Default,
     {
         self.initialize_with_data(payer, seeds, system_program, T::default())
     }
@@ -52,7 +55,8 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         system_program: &Program<'a>,
         initial: T,
     ) -> Result<()>
-    where T: Discriminator
+    where
+        T: Discriminator,
     {
         if self.info.lamports() > 0 {
             return Ok(());
@@ -84,7 +88,11 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
 
         invoke_signed(
             &instruction,
-            &[payer.info.clone(), self.info.clone(), system_program.info.clone()],
+            &[
+                payer.info.clone(),
+                self.info.clone(),
+                system_program.info.clone(),
+            ],
             &[seeds_data.as_slice()],
         )?;
 
@@ -130,7 +138,11 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
 
         invoke_signed(
             &instruction,
-            &[payer.info.clone(), self.info.clone(), system_program.info.clone()],
+            &[
+                payer.info.clone(),
+                self.info.clone(),
+                system_program.info.clone(),
+            ],
             &[seeds_data.as_slice()],
         )?;
 

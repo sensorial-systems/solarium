@@ -1,4 +1,9 @@
-use solana_program::{account_info::AccountInfo, pubkey::Pubkey, system_program, sysvar::{clock, rent}};
+use solana_program::{
+    account_info::AccountInfo,
+    pubkey::Pubkey,
+    sysvar::{clock, rent},
+};
+use solana_sdk_ids::system_program;
 
 pub trait Context<'a> {
     fn get_accounts(&'a self) -> &'a [AccountInfo<'a>];
@@ -16,6 +21,9 @@ pub trait Context<'a> {
     }
 
     fn get_account(&'a self, key: &Pubkey) -> &'a AccountInfo<'a> {
-        self.get_accounts().iter().find(|account| account.key == key).unwrap()
+        self.get_accounts()
+            .iter()
+            .find(|account| account.key == key)
+            .unwrap()
     }
 }

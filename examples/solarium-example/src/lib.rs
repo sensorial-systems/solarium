@@ -24,13 +24,23 @@ impl Seeds for ExampleSeeds {
 
 #[program]
 impl Example {
-    pub fn initialize<'a>(&self, payer: &Signer<'a>, data: &mut Account<'a, ExampleData>, system_program: &Program<'a>) -> Result<()> {
+    pub fn initialize<'a>(
+        &self,
+        payer: &Signer<'a>,
+        data: &mut Account<'a, ExampleData>,
+        system_program: &Program<'a>,
+    ) -> Result<()> {
         msg!("Initializing Example PDA");
         data.allocate(payer, ExampleSeeds::default(), system_program, 256)?;
         Ok(())
     }
 
-    pub fn set_message(&self, _payer: &Signer, data: &mut Account<ExampleData>, message: String) -> Result<()> {
+    pub fn set_message(
+        &self,
+        _payer: &Signer,
+        data: &mut Account<ExampleData>,
+        message: String,
+    ) -> Result<()> {
         msg!("Setting message: {}", message);
         data.data()?.message = message;
         Ok(())

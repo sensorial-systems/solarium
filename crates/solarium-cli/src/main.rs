@@ -1,7 +1,7 @@
 use std::path::Path;
 
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use anyhow::{Result, Context};
 use solarium_workspace::{IdlType, Workspace};
 
 #[derive(Parser)]
@@ -35,7 +35,7 @@ enum Commands {
         program: Option<String>,
     },
     /// Generate the IDL for the program
-    Idl
+    Idl,
 }
 
 #[tokio::main]

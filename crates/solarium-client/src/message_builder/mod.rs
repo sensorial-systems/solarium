@@ -2,8 +2,8 @@ use crate::prelude::*;
 
 use super::{Connection, Message, Transaction};
 
-use solana_sdk::signers::Signers;
 use solana_instruction::Instruction;
+use solana_sdk::signers::Signers;
 
 pub struct MessageBuilder {
     pub connection: Connection,

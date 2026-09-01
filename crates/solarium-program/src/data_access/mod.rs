@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use borsh::{BorshSerialize, BorshDeserialize};
 use crate::{Program, Signer};
+use borsh::{BorshDeserialize, BorshSerialize};
 
 pub trait DataAccess<'a, T: BorshSerialize + BorshDeserialize> {
     type Output;

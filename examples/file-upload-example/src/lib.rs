@@ -53,7 +53,12 @@ pub struct FileAccount {
 
 impl Default for FileAccount {
     fn default() -> Self {
-        Self { expected_crc32: 0, file_size: 0, written_crc32: 0, payload_len: 0 }
+        Self {
+            expected_crc32: 0,
+            file_size: 0,
+            written_crc32: 0,
+            payload_len: 0,
+        }
     }
 }
 
@@ -113,8 +118,17 @@ impl FileUploadExample {
         Ok(())
     }
 
-    pub fn upload_chunk(&self, _payer: &Signer, file: &mut Account<FileAccount>, args: UploadChunkArgs) -> Result<()> {
-        msg!("Upload chunk at offset {} ({} bytes)", args.offset, args.data.len());
+    pub fn upload_chunk(
+        &self,
+        _payer: &Signer,
+        file: &mut Account<FileAccount>,
+        args: UploadChunkArgs,
+    ) -> Result<()> {
+        msg!(
+            "Upload chunk at offset {} ({} bytes)",
+            args.offset,
+            args.data.len()
+        );
         let acc_ro = file.data()?;
         let header_size = account_header_len(&acc_ro);
         let payload_len = acc_ro.payload_len as usize;
@@ -182,7 +196,9 @@ impl FileUploadExample {
         drop(acc_ro);
 
         let new_len = core::cmp::min(file_size, current_len + additional_bytes as usize);
-        if new_len == current_len { return Ok(()); }
+        if new_len == current_len {
+            return Ok(());
+        }
 
         let target_account_len = header_size + new_len;
         file.realloc_to(payer, system_program, target_account_len, true)?;
@@ -200,7 +216,12 @@ impl FileUploadExample {
         args: AllocateArgs,
     ) -> Result<()> {
         msg!("Allocate PDA space only: {} bytes", args.space);
-        file.allocate(payer, FileSeeds::default(), system_program, args.space as usize)?;
+        file.allocate(
+            payer,
+            FileSeeds::default(),
+            system_program,
+            args.space as usize,
+        )?;
         Ok(())
     }
 }

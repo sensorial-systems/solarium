@@ -40,17 +40,23 @@ impl Program {
     }
 
     /// Get the program ID from a keypair file. If the keypair file does not exist, create a new one and return the public key.
-    pub fn get_program_id_from_file(workspace: impl AsRef<Path>, name: impl AsRef<str>) -> Result<Pubkey> {
+    pub fn get_program_id_from_file(
+        workspace: impl AsRef<Path>,
+        name: impl AsRef<str>,
+    ) -> Result<Pubkey> {
         let name = name.as_ref();
         let deploy = workspace.as_ref().join("target").join("deploy");
         let name = Identifier::new(name).to_snake_case();
         let keypair_file = deploy.join(format!("{}-keypair.json", name));
         if keypair_file.exists() {
-            let keypair = Keypair::read_from_file(keypair_file).map_err(|e| anyhow::anyhow!("Failed to read keypair: {}", e))?;
+            let keypair = Keypair::read_from_file(keypair_file)
+                .map_err(|e| anyhow::anyhow!("Failed to read keypair: {}", e))?;
             Ok(keypair.pubkey())
         } else {
             let keypair = Keypair::new();
-            keypair.write_to_file(&keypair_file).map_err(|e| anyhow::anyhow!("Failed to write keypair: {}", e))?;
+            keypair
+                .write_to_file(&keypair_file)
+                .map_err(|e| anyhow::anyhow!("Failed to write keypair: {}", e))?;
             Ok(keypair.pubkey())
         }
     }
@@ -60,23 +66,33 @@ impl Program {
     }
 
     pub fn idl_path(&self, workspace: &Workspace) -> PathBuf {
-        workspace.root.join("target").join("idl").join(format!("{}.json", self.name.to_snake_case()))
+        workspace
+            .root
+            .join("target")
+            .join("idl")
+            .join(format!("{}.json", self.name.to_snake_case()))
     }
 
     pub fn anchor_idl_from_file(&self, workspace: &Workspace) -> Result<anchor_lang_idl_spec::Idl> {
         let idl_path = self.idl_path(workspace);
         if !idl_path.exists() {
             let idl = self.idl().context("Failed to get program IDL")?;
-            idl.save_as(&workspace, IdlType::Anchor).context("Failed to save IDL")?;
+            idl.save_as(&workspace, IdlType::Anchor)
+                .context("Failed to save IDL")?;
         }
         let idl = std::fs::read_to_string(&idl_path).context("Failed to read IDL")?;
-        let idl: anchor_lang_idl_spec::Idl = serde_json::from_str(&idl).context("Failed to parse IDL")?;
+        let idl: anchor_lang_idl_spec::Idl =
+            serde_json::from_str(&idl).context("Failed to parse IDL")?;
         Ok(idl)
     }
 
     pub async fn deploy(&self, workspace: &Workspace) -> Result<()> {
         println!("Deploying {} ({})", self.name, self.public_key);
-        let program_so = workspace.root.join("target").join("deploy").join(format!("{}.so", self.name.to_snake_case()));
+        let program_so = workspace
+            .root
+            .join("target")
+            .join("deploy")
+            .join(format!("{}.so", self.name.to_snake_case()));
         let status = tokio::process::Command::new("solana")
             .arg("program")
             .arg("deploy")
@@ -94,8 +110,10 @@ impl Program {
 
     pub fn try_from(root: &Path, folder: PathBuf) -> Result<Self> {
         let cargo_toml = folder.join("Cargo.toml");
-        let cargo_toml = std::fs::read_to_string(&cargo_toml).context("Failed to read Cargo.toml")?;
-        let cargo_toml: toml::Value = toml::from_str(&cargo_toml).context("Failed to parse Cargo.toml")?;
+        let cargo_toml =
+            std::fs::read_to_string(&cargo_toml).context("Failed to read Cargo.toml")?;
+        let cargo_toml: toml::Value =
+            toml::from_str(&cargo_toml).context("Failed to parse Cargo.toml")?;
         // Only treat crates that build a cdylib as deployable on-chain programs
         let is_program_crate = cargo_toml
             .get("lib")
@@ -115,6 +133,10 @@ impl Program {
             .get("solarium-program")
             .context("solarium-program is not a dependency")?;
         let public_key = Self::get_program_id_from_file(&root, name.to_string())?;
-        Ok(Self { name, public_key, folder })
+        Ok(Self {
+            name,
+            public_key,
+            folder,
+        })
     }
 }

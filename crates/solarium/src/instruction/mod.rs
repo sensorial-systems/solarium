@@ -1,5 +1,5 @@
+use crate::prelude::borsh::{BorshDeserialize, BorshSerialize};
 use sha2::{Digest, Sha256};
-use crate::prelude::borsh::{BorshSerialize, BorshDeserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize)]
 pub struct Instruction<Data> {
@@ -9,7 +9,10 @@ pub struct Instruction<Data> {
 
 impl<Data> Instruction<Data> {
     pub fn new(discriminator: [u8; 8], data: Data) -> Self {
-        Self { discriminator, data }
+        Self {
+            discriminator,
+            data,
+        }
     }
 
     pub fn discriminator_for(name: impl AsRef<str>) -> [u8; 8] {

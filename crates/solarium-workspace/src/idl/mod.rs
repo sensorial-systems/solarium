@@ -1,15 +1,15 @@
-use ligen_anchor::generator::AnchorGenerator;
-use ligen::prelude::*;
 use ligen::idl::{Identifier, Library};
+use ligen::prelude::*;
+use ligen_anchor::generator::AnchorGenerator;
 use ligen_rust::parser::RustLibraryParser;
 
-use crate::prelude::{*, Result};
+use crate::prelude::{Result, *};
 use crate::Program;
 use crate::Workspace;
 
 #[derive(Debug)]
 pub struct Idl {
-    pub idl: Library
+    pub idl: Library,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -31,7 +31,11 @@ impl Idl {
                 std::fs::create_dir_all(&idl_path).context("Failed to create IDL directory")?;
                 let name = Identifier::from(idl.metadata.name.clone()).to_snake_case();
                 let idl_path = idl_path.join(format!("{}.json", name));
-                std::fs::write(idl_path, serde_json::to_string_pretty(&idl).context("Failed to write IDL")?).context("Failed to write IDL")?;
+                std::fs::write(
+                    idl_path,
+                    serde_json::to_string_pretty(&idl).context("Failed to write IDL")?,
+                )
+                .context("Failed to write IDL")?;
             }
         }
         Ok(())
@@ -48,7 +52,9 @@ impl TryFrom<&Program> for Idl {
     fn try_from(program: &Program) -> Result<Self> {
         let parser = RustLibraryParser::new();
         let mut idl = parser.transform(&program.folder, &Config::default())?;
-        idl.metadata.table.insert("address".to_string(), program.public_key.to_string());
+        idl.metadata
+            .table
+            .insert("address".to_string(), program.public_key.to_string());
         Ok(Idl { idl })
     }
 }
