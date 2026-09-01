@@ -53,7 +53,7 @@ impl<'a, T> Account<'a, T> {
         let required = rent.minimum_balance(new_len);
         let current = account.lamports();
         if required > current {
-            let ix = solana_program::system_instruction::transfer(
+            let ix = crate::system_instruction::transfer(
                 &payer.info.signer_key().unwrap(),
                 account.key,
                 required - current,

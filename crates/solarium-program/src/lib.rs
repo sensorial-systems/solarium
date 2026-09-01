@@ -18,6 +18,8 @@ mod guard;
 mod program;
 #[cfg(not(target_arch = "wasm32"))]
 mod signer;
+#[cfg(not(target_arch = "wasm32"))]
+mod system_instruction;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use account::*;

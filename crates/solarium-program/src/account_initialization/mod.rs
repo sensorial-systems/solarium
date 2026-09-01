@@ -73,7 +73,7 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         let rent = Rent::get()?;
         let data_size = initial_data.len();
         let rent_amount = rent.minimum_balance(data_size);
-        let instruction = solana_program::system_instruction::create_account(
+        let instruction = crate::system_instruction::create_account(
             &payer.info.signer_key().unwrap(),
             &account_pda,
             rent_amount,
@@ -123,7 +123,7 @@ impl<'a, T: Initialization> AccountInitialization<'a, T> for &mut Account<'a, T>
         // created with data already in it.
         let space = space + crate::DISCRIMINATOR_LEN;
         let rent_amount = rent.minimum_balance(space);
-        let instruction = solana_program::system_instruction::create_account(
+        let instruction = crate::system_instruction::create_account(
             &payer.info.signer_key().unwrap(),
             &account_pda,
             rent_amount,
