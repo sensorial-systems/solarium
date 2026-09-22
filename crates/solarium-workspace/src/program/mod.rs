@@ -86,14 +86,26 @@ impl Program {
         Ok(idl)
     }
 
+    /// Deploys to the cluster the Solana CLI is configured for.
     pub async fn deploy(&self, workspace: &Workspace) -> Result<()> {
+        self.deploy_to(workspace, None).await
+    }
+
+    /// Deploys to `url`, or to the CLI's configured cluster when there is none. The local
+    /// validator is always named: left to the configuration, a deploy meant for it lands on
+    /// whatever cluster the CLI happens to point at, paid for by its default keypair.
+    pub async fn deploy_to(&self, workspace: &Workspace, url: Option<&str>) -> Result<()> {
         println!("Deploying {} ({})", self.name, self.public_key);
         let program_so = workspace
             .root
             .join("target")
             .join("deploy")
             .join(format!("{}.so", self.name.to_snake_case()));
-        let status = tokio::process::Command::new("solana")
+        let mut command = tokio::process::Command::new("solana");
+        if let Some(url) = url {
+            command.arg("--url").arg(url);
+        }
+        let status = command
             .arg("program")
             .arg("deploy")
             .arg(program_so)

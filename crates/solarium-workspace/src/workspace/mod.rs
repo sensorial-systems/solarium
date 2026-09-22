@@ -6,6 +6,9 @@ use ligen_rust::parser::cargo::Cargo;
 
 use crate::Program;
 
+/// Where `dev` and `test` start their validator, and so where they deploy.
+const LOCAL_VALIDATOR: &str = "http://127.0.0.1:8899";
+
 #[derive(Debug)]
 pub struct Workspace {
     pub root: PathBuf,
@@ -136,7 +139,7 @@ impl Workspace {
 
         tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
         let mut attempts = 3;
-        while let Err(_e) = self.deploy().await {
+        while let Err(_e) = self.deploy_to(Some(LOCAL_VALIDATOR)).await {
             tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
             attempts -= 1;
             if attempts == 0 {
@@ -178,9 +181,15 @@ impl Workspace {
         Ok(())
     }
 
+    /// Deploys every program to the cluster the Solana CLI is configured for.
     pub async fn deploy(&self) -> Result<()> {
+        self.deploy_to(None).await
+    }
+
+    /// Deploys every program to `url`, or to the CLI's configured cluster when there is none.
+    pub async fn deploy_to(&self, url: Option<&str>) -> Result<()> {
         for program in self.programs.iter() {
-            program.deploy(self).await?;
+            program.deploy_to(self, url).await?;
         }
         Ok(())
     }
