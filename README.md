@@ -34,11 +34,19 @@ Build the Solarium workspace and start the local validator:
 solarium dev
 ```
 
-Deploy the Solarium workspace:
+Deploy the Solarium workspace to the cluster the Solana CLI is configured for:
 
 ```bash
 solarium deploy
 ```
+
+Deploy to a named cluster instead, optionally one program of the workspace:
+
+```bash
+solarium deploy --url https://api.devnet.solana.com
+```
+
+`dev` and `test` take no `--url`: they deploy to the local validator they start.
 
 ## Program backends
 

@@ -33,6 +33,11 @@ enum Commands {
     Deploy {
         /// The program to deploy
         program: Option<String>,
+        /// The cluster to deploy to. Defaults to the one the Solana CLI is configured for.
+        ///
+        /// `dev` and `test` are not given one: they deploy to the validator they start.
+        #[arg(short, long)]
+        url: Option<String>,
     },
     /// Generate the IDL for the program
     Idl,
@@ -82,13 +87,14 @@ async fn main() -> Result<()> {
                 println!("{} ({})", program.name, program.public_key);
             }
         }
-        Commands::Deploy { program } => {
+        Commands::Deploy { program, url } => {
             let workspace = workspace?;
+            let url = url.as_deref();
             if let Some(program) = program {
                 let program = workspace.program(program).context("program not found")?;
-                program.deploy(&workspace).await?;
+                program.deploy_to(&workspace, url).await?;
             } else {
-                workspace.deploy().await?;
+                workspace.deploy_to(url).await?;
             }
         }
     }
