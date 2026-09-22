@@ -1,4 +1,4 @@
-use solana_sdk::compute_budget::ComputeBudgetInstruction;
+use solana_compute_budget_interface::ComputeBudgetInstruction;
 use solarium_client::utils::KeypairExt;
 use solarium_client::{prelude::*, Program};
 use solarium_client::{Account, Connection, Keypair};
@@ -61,7 +61,7 @@ async fn solana() -> Result<()> {
         .initialize(
             keypair.pubkey(),
             file_pda.address(),
-            solana_sdk::system_program::ID,
+            solana_sdk_ids::system_program::ID,
             InitArgs {
                 expected_crc32,
                 file_size,
@@ -87,7 +87,7 @@ async fn solana() -> Result<()> {
             .grow(
                 keypair.pubkey(),
                 file_pda.address(),
-                solana_sdk::system_program::ID,
+                solana_sdk_ids::system_program::ID,
                 step as u64,
             )?
             .sign(&[&keypair], Some(&keypair.pubkey()))

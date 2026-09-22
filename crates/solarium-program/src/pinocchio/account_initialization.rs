@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::{pinocchio_backend::address, Account, Program, Signer};
 use pinocchio::cpi::{Seed, Signer as CpiSigner};
-use pinocchio::sysvars::{rent::Rent, Sysvar};
 use pinocchio_system::instructions::CreateAccount;
 
 pub trait AccountInitialization<'a, T> {
@@ -101,11 +100,10 @@ fn create<'a, T: Initialization, S: Seeds>(
     signer_seeds.push(Seed::from(&bump_seed));
     let signer = CpiSigner::from(signer_seeds.as_slice());
 
-    let rent = Rent::get()?;
     CreateAccount {
         from: payer.info.view(),
         to: account.info.view(),
-        lamports: rent.try_minimum_balance(space)?,
+        lamports: crate::pinocchio_backend::minimum_balance(space)?,
         space: space as u64,
         owner: &address(T::owner()),
     }

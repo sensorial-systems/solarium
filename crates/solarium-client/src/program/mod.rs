@@ -3,7 +3,7 @@ use crate::prelude::*;
 use super::{Connection, Subscription};
 use solana_account_decoder_client_types::UiAccountEncoding;
 use solana_client::rpc_config::{RpcAccountInfoConfig, RpcProgramAccountsConfig};
-use solana_sdk::commitment_config::CommitmentConfig;
+use solana_commitment_config::CommitmentConfig;
 
 #[async_trait]
 pub trait Program {

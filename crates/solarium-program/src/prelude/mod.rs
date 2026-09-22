@@ -19,7 +19,7 @@ pub use solana_program::pubkey::Pubkey;
 pub use crate::{msg, pinocchio, AccountInfo, ProgramError, Pubkey};
 
 #[cfg(target_arch = "wasm32")]
-pub use crate::{msg, solana_program, Account, Program, ProgramError, Pubkey, Signer};
+pub use crate::{msg, solana_program, Account, Program, ProgramError, Pubkey, Remaining, Signer};
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use crate::{AccountInitialization, Check, DataAccess, ResizableDataAccess};

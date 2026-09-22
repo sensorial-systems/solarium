@@ -51,6 +51,12 @@ mod program;
 mod program;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+mod remaining;
+#[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
+#[path = "pinocchio/remaining.rs"]
+mod remaining;
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
 mod signer;
 #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
 #[path = "pinocchio/signer.rs"]
@@ -79,6 +85,8 @@ pub use data_access::*;
 pub use guard::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use program::*;
+#[cfg(not(target_arch = "wasm32"))]
+pub use remaining::*;
 #[cfg(not(target_arch = "wasm32"))]
 pub use signer::*;
 
@@ -170,6 +178,10 @@ impl<'a> Signer<'a> {
 #[cfg(target_arch = "wasm32")]
 #[derive(Debug, Clone)]
 pub struct Program<'a>(std::marker::PhantomData<&'a ()>);
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug, Clone)]
+pub struct Remaining<'a>(std::marker::PhantomData<&'a ()>);
 
 pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
     #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]

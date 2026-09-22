@@ -1,6 +1,6 @@
 use crate::{prelude::*, AccountInfo, Guard, GuardMut, Program, Signer};
 use core::marker::PhantomData;
-use pinocchio::{account::Ref, account::RefMut, sysvars::rent::Rent, sysvars::Sysvar, Resize};
+use pinocchio::{account::Ref, account::RefMut, Resize};
 use pinocchio_system::instructions::Transfer;
 
 #[derive(Clone)]
@@ -40,8 +40,7 @@ impl<'a, T> Account<'a, T> {
         new_len: usize,
         _zero_init: bool,
     ) -> Result<()> {
-        let rent = Rent::get()?;
-        let required = rent.try_minimum_balance(new_len)?;
+        let required = crate::pinocchio_backend::minimum_balance(new_len)?;
         let current = account.lamports();
         if required > current {
             Transfer {
@@ -80,11 +79,7 @@ impl<'a, T: Discriminator> DataAccess<'a, T> for &mut Account<'a, T> {
     fn data(self) -> Self::Output {
         let account = self.info;
         let data = self.deserialize()?;
-        Ok(GuardMut {
-            account,
-            data,
-            resize: None,
-        })
+        Ok(GuardMut::new(account, data, None))
     }
 }
 
@@ -94,11 +89,7 @@ impl<'a, T: Discriminator> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
     fn resizeable_data(self, payer: &Signer<'a>, program: &Program<'a>) -> Self::Output {
         let account = self.info;
         let data = self.deserialize()?;
-        Ok(GuardMut {
-            account,
-            data,
-            resize: Some((*payer, *program)),
-        })
+        Ok(GuardMut::new(account, data, Some((*payer, *program))))
     }
 }
 

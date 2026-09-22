@@ -86,6 +86,7 @@ impl<'a, T> Account<'a, T> {
 impl<'a, T> TryFrom<&'a AccountInfo<'a>> for Account<'a, T> {
     type Error = Error;
 
+    #[inline]
     fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
         let phantom = Default::default();
         Ok(Self { info, phantom })
@@ -99,11 +100,7 @@ impl<'a, T: Discriminator> DataAccess<'a, T> for &mut Account<'a, T> {
         let data = self.deserialize()?;
         let resize = Default::default();
 
-        Ok(GuardMut {
-            account,
-            data,
-            resize,
-        })
+        Ok(GuardMut::new(account, data, resize))
     }
 }
 
@@ -113,11 +110,7 @@ impl<'a, T: Discriminator> ResizableDataAccess<'a, T> for &mut Account<'a, T> {
         let account = self.info;
         let data = self.deserialize()?;
         let resize = Some((*payer, *program));
-        Ok(GuardMut {
-            account,
-            data,
-            resize,
-        })
+        Ok(GuardMut::new(account, data, resize))
     }
 }
 

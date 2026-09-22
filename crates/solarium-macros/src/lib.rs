@@ -56,9 +56,10 @@ pub fn generate_client(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn program(_args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn program(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = syn::parse_macro_input!(args as program_macro::ProgramArguments);
     let input = syn::parse_macro_input!(input as syn::ItemImpl);
-    program_macro::process(input)
+    program_macro::process(args, input)
         .expect("Failed to generate program")
         .into()
 }

@@ -9,6 +9,7 @@ pub struct Program<'a> {
 impl<'a> TryFrom<&'a AccountInfo<'a>> for Program<'a> {
     type Error = Error;
 
+    #[inline]
     fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
         if info.executable {
             Ok(Self { info })

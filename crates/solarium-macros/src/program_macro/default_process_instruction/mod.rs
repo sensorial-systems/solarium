@@ -4,6 +4,8 @@ use ligen::idl::Identifier;
 use ligen_rust::generator::{RustIdentifierGenerator, RustTypeGenerator};
 use quote::quote;
 
+use super::instruction_attribute::{self, InstructionAttribute};
+
 #[allow(non_snake_case)]
 pub fn generate(
     program_impl: &mut syn::ItemImpl,
@@ -23,13 +25,52 @@ pub fn generate(
     let mut instructions_parameters = Vec::new();
     let mut calls = Vec::new();
     let mut calls_pinocchio = Vec::new();
+    let mut entries = Vec::new();
+    let mut entries_pinocchio = Vec::new();
+
+    let mut attributes = std::collections::HashMap::new();
+    for item in &mut program_impl.items {
+        if let syn::ImplItem::Fn(method) = item {
+            let attribute = InstructionAttribute::parse(method)?;
+            InstructionAttribute::strip(method);
+            // Called from its own entry and nowhere else, so inlining it costs nothing — and it
+            // lets whatever the method calls once be inlined in turn, finding its accounts in the
+            // slice instead of being handed each one.
+            method.attrs.push(syn::parse_quote!(#[inline(always)]));
+            // Argument types as written. The interface's own rendering of a type does not survive
+            // every shape — an array comes back as a name — and these are what Borsh has to read.
+            let types: Vec<syn::Type> = method
+                .sig
+                .inputs
+                .iter()
+                .filter_map(|input| match input {
+                    syn::FnArg::Typed(typed) => Some((*typed.ty).clone()),
+                    syn::FnArg::Receiver(_) => None,
+                })
+                .collect();
+            attributes.insert(
+                method.sig.ident.to_string(),
+                (method.sig.ident.clone(), attribute, types),
+            );
+        }
+    }
+    instruction_attribute::check_unique(
+        attributes
+            .values()
+            .flat_map(|(ident, attribute, _)| attribute.all().map(move |d| (ident, d))),
+    )?;
+
     for method in &input.methods {
         let identifier = &method.identifier;
         let MethodName = identifier_generator.generate(&identifier.to_pascal_case(), &config)?;
         let METHOD_NAME =
             identifier_generator.generate(&identifier.to_screaming_snake_case(), &config)?;
         let method_name = identifier_generator.generate(&identifier.to_snake_case(), &config)?;
-        let namespace = format!("global:{}", identifier);
+        let (_, attribute, types) = attributes
+            .get(&identifier.to_string())
+            .expect("every parsed method is an item of the impl");
+        let discriminator = attribute.discriminator;
+        let aliases = &attribute.aliases;
         let parameter_structure = identifier_generator.generate(
             &Identifier::from(format!(
                 "{}{}",
@@ -38,10 +79,10 @@ pub fn generate(
             )),
             &config,
         )?;
-        constants.push(quote! { pub const #METHOD_NAME: u64 = u64::from_le_bytes(solarium::discriminator!(#namespace)); });
+        constants.push(quote! { pub const #METHOD_NAME: u64 = #discriminator; });
         variants.push(quote! { #MethodName(#parameter_structure) });
         deserializers.push(quote! {
-            Self::#METHOD_NAME => Ok(Self::#MethodName(#parameter_structure::deserialize_reader(reader)?))
+            Self::#METHOD_NAME #(| #aliases)* => Ok(Self::#MethodName(#parameter_structure::deserialize_reader(reader)?))
         });
         serializers.push(quote! {
             Self::#MethodName(value) => {
@@ -53,7 +94,10 @@ pub fn generate(
         let mut inputs = Vec::new();
         let mut arguments = Vec::new();
         let mut arguments_pinocchio = Vec::new();
-        for input in &method.inputs {
+        // Accounts are indexed after a single length check rather than drawn one at a time: the
+        // same refusal for a short list, without a bounds check and an error path per account.
+        let mut named_accounts = 0usize;
+        for (position, input) in method.inputs.iter().enumerate() {
             if input.type_.is_constant_reference() || input.type_.is_mutable_reference() {
                 let inner_type = input
                     .type_
@@ -64,26 +108,39 @@ pub fn generate(
                     .first()
                     .expect("Reference must have a target type");
                 let type_ = type_generator.generate(inner_type, &config)?;
-                if input.type_.is_mutable_reference() {
+                if inner_type.path.last().identifier == "Remaining" {
+                    // It takes every account left, so nothing named after it could be reached.
+                    let accounts_after = method.inputs[position + 1..].iter().any(|input| {
+                        input.type_.is_constant_reference() || input.type_.is_mutable_reference()
+                    });
+                    if accounts_after {
+                        anyhow::bail!("`{identifier}`: `Remaining` must be the last account");
+                    }
+                    arguments.push(quote! { &solarium_program::Remaining::new(&accounts[#named_accounts..]) });
+                    arguments_pinocchio.push(quote! { &solarium_program::Remaining::rest(accounts) });
+                } else if input.type_.is_mutable_reference() {
                     arguments.push(quote! {
-                        &mut <#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                        &mut <#type_>::try_from(&accounts[#named_accounts])?
                     });
                     arguments_pinocchio.push(quote! {
                         &mut <#type_>::try_from(accounts.next().ok_or(solarium_program::ProgramError::NotEnoughAccountKeys)?)?
                     });
                 } else {
                     arguments.push(quote! {
-                        &<#type_>::try_from(solarium_program::prelude::solana_program::account_info::next_account_info(accounts)?)?
+                        &<#type_>::try_from(&accounts[#named_accounts])?
                     });
                     arguments_pinocchio.push(quote! {
                         &<#type_>::try_from(accounts.next().ok_or(solarium_program::ProgramError::NotEnoughAccountKeys)?)?
                     });
                 }
+                if inner_type.path.last().identifier != "Remaining" {
+                    named_accounts += 1;
+                }
             } else {
                 let input_name = identifier_generator.generate(&input.identifier, &config)?;
-                let input_type = type_generator.generate(&input.type_, &config)?;
+                let input_type = &types[position];
                 inputs.push(quote! {
-                    #input_name: #input_type
+                    pub #input_name: #input_type
                 });
                 arguments.push(quote! {
                     arguments.#input_name
@@ -102,15 +159,45 @@ pub fn generate(
             }
         });
 
+        let length_check = (named_accounts > 0).then(|| quote! {
+            if accounts.len() < #named_accounts {
+                return Err(solarium_program::prelude::solana_program::program_error::ProgramError::NotEnoughAccountKeys.into());
+            }
+        });
+        // Each instruction is entered through a function of its own, handed the account slice
+        // whole. Inlined into one dispatcher, every method would share its stack frame — on sBPF
+        // a hard 4 KiB — and every call a method makes would be handed its accounts one by one
+        // past the few registers there are, rather than find them in the slice where they lie.
+        let entry = quote::format_ident!("__solarium_{}", method_name.to_string());
+        entries.push(quote! {
+            #[inline(never)]
+            #[doc(hidden)]
+            fn #entry<'a>(
+                &self,
+                accounts: &'a [solarium_program::prelude::solana_program::account_info::AccountInfo<'a>],
+                arguments: #parameter_structure,
+            ) -> Result<()> {
+                #length_check
+                self.#method_name(#(#arguments),*)
+            }
+        });
         calls.push(quote! {
-            #instruction_name::#MethodName(arguments) => {
-                self.#method_name(#(#arguments),*)?;
+            #instruction_name::#MethodName(arguments) => self.#entry(accounts, arguments)?
+        });
+        entries_pinocchio.push(quote! {
+            #[inline(never)]
+            #[doc(hidden)]
+            fn #entry<'a>(
+                &self,
+                accounts: &'a mut [solarium_program::prelude::pinocchio::AccountView],
+                arguments: #parameter_structure,
+            ) -> Result<()> {
+                let accounts = &mut accounts.iter_mut();
+                self.#method_name(#(#arguments_pinocchio),*)
             }
         });
         calls_pinocchio.push(quote! {
-            #instruction_name::#MethodName(arguments) => {
-                self.#method_name(#(#arguments_pinocchio),*)?;
-            }
+            #instruction_name::#MethodName(arguments) => self.#entry(accounts, arguments)?
         });
     }
 
@@ -162,12 +249,13 @@ pub fn generate(
                 instruction_data: &[u8],
             ) -> Result<()> {
                 check_id(program_id).then_some(()).ok_or(solarium_program::prelude::solana_program::program_error::ProgramError::IncorrectProgramId)?;
-                let accounts = &mut accounts.iter();
-                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data).map_err(|_| solarium_program::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
+                match Self::instruction(instruction_data).map_err(|_| solarium_program::prelude::solana_program::program_error::ProgramError::InvalidInstructionData)? {
                     #(#calls),*
                 }
                 Ok(())
             }
+
+            #(#entries)*
         }
     };
 
@@ -183,19 +271,33 @@ pub fn generate(
                 check_id(&program_id)
                     .then_some(())
                     .ok_or(solarium_program::ProgramError::IncorrectProgramId)?;
-                let accounts = &mut accounts.iter_mut();
-                match <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::try_from_slice(instruction_data)
+                match Self::instruction(instruction_data)
                     .map_err(|_| solarium_program::ProgramError::InvalidInstructionData)?
                 {
                     #(#calls_pinocchio),*
                 }
                 Ok(())
             }
+
+            #(#entries_pinocchio)*
         }
     };
 
     let program_definition = quote! {
         pub struct #program_name;
+
+        impl #program_name {
+            /// Reads the instruction an input names.
+            ///
+            /// Whatever follows its arguments is left unread rather than refused, as Anchor does:
+            /// a program calling back into this one — a settle, an oracle — may append bytes of
+            /// its own that the method has no use for.
+            pub fn instruction(instruction_data: &[u8]) -> std::io::Result<#instruction_name> {
+                <#instruction_name as solarium::prelude::borsh::BorshDeserialize>::deserialize(
+                    &mut &instruction_data[..],
+                )
+            }
+        }
     };
 
     let output = quote! {

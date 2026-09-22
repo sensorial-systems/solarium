@@ -25,6 +25,7 @@ impl<'a> Signer<'a> {
 impl<'a> TryFrom<&'a AccountInfo<'a>> for Signer<'a> {
     type Error = Error;
 
+    #[inline]
     fn try_from(info: &'a AccountInfo<'a>) -> Result<Self> {
         if !info.is_signer {
             return Err(ProgramError::MissingRequiredSignature.into());

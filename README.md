@@ -84,6 +84,40 @@ logging; pass String values as .as_str().
 Backend switching is a compile-time build choice, not a deployment operation. Test new artifacts
 on a disposable local validator with a throwaway wallet before any public-cluster deployment.
 
+## Fixed addresses and instruction numbers
+
+A program already deployed, or one that other programs call back into, can keep the wire format it
+has instead of taking Solarium's defaults:
+
+~~~rust
+#[program(id = "SLoTSdnmBH5KtNJjhEYw1MeWTKAfRnFfQTTcpgwRn2Q")]
+impl Slots {
+    // Answers to the little-endian u64 16 rather than sha256("global:request_bet").
+    #[instruction(discriminator = 16)]
+    pub fn request_bet(&self, /* ... */) -> Result<()> { /* ... */ }
+
+    // Also reached by the tag the delegation program calls back with. Clients send 3.
+    #[instruction(discriminator = 3, alias = "global:process_undelegation")]
+    pub fn undelegate(&self, /* ... */) -> Result<()> { /* ... */ }
+}
+~~~
+
+- `id` pins the program id in the source. Without it the id is read from the workspace's
+  `target/deploy/<crate>-keypair.json`, which is generated if missing.
+- A `discriminator` or `alias` is an integer (the u64 the instruction starts with) or a string,
+  hashed as the defaults are. Two methods answering to the same one is a compile error.
+- Bytes after an instruction's arguments are left unread, so a program calling back with extra
+  data of its own still reaches the method.
+
+An instruction whose account list runs on takes the tail as its last account parameter,
+`extra: &Remaining<'a>`, which derefs to a slice of whatever followed the named accounts.
+
+Each instruction is entered through a function of its own, which is handed the account slice and
+into which the method is inlined. On sBPF this keeps every instruction in its own 4 KiB stack
+frame, and lets a function the method calls once be inlined too (`#[inline(always)]`), finding
+its accounts in the slice rather than being passed each one — past three accounts, every one
+passed costs instructions at the call.
+
 ## Documentation (mdBook)
 
 The tutorial lives under `docs/` and is built with mdBook.

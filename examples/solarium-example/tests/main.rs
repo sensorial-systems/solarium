@@ -38,7 +38,7 @@ fn dynamic_address_overrides_custom_program_address() -> Result<()> {
     let builder = program.message_builder().initialize(
         Pubkey::new_unique(),
         Pubkey::new_unique(),
-        solana_sdk::system_program::ID,
+        solana_sdk_ids::system_program::ID,
     )?;
     assert_eq!(builder.instructions()[0].program_id, dynamic_address);
     Ok(())
@@ -61,7 +61,7 @@ async fn solana() -> Result<()> {
         .initialize(
             keypair.pubkey(),
             data.address(),
-            solana_sdk::system_program::ID,
+            solana_sdk_ids::system_program::ID,
         )?
         .set_message(
             keypair.pubkey(),

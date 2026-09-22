@@ -2,10 +2,8 @@ use crate::prelude::*;
 use crate::Sendable;
 use shrinkwraprs::Shrinkwrap;
 use solana_client::nonblocking::rpc_client::RpcClient;
-use solana_sdk::{
-    commitment_config::CommitmentConfig, signature::Signature, signers::Signers,
-    transaction::Transaction,
-};
+use solana_commitment_config::CommitmentConfig;
+use solana_sdk::{signature::Signature, signers::Signers, transaction::Transaction};
 
 #[derive(Clone, Shrinkwrap)]
 pub struct Connection {

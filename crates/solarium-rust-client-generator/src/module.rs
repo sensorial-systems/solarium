@@ -143,22 +143,33 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                         let instruction_with_address = self
                             .identifier_generator
                             .generate(&instruction_with_address, config)?;
-                        let discriminator =
-                            ligen::idl::Literal::from(&format!("global:{}", method.identifier));
-                        let discriminator =
-                            self.literal_generator.generate(&discriminator, config)?;
+                        let discriminator = discriminator(method)?;
                         let mut parameters: Vec<proc_macro2::TokenStream> = Vec::new();
                         let mut arguments: Vec<proc_macro2::TokenStream> = Vec::new();
                         let mut message_builder_arguments: Vec<proc_macro2::TokenStream> =
                             Vec::new();
                         let mut accounts = Vec::new();
+                        let mut remaining = None;
                         for parameter in &method.inputs {
                             let name = &parameter.identifier;
                             let name = self.identifier_generator.generate(&name, config)?;
                             message_builder_arguments.push(quote! {
                                 #name
                             });
-                            if parameter.type_.is_mutable_reference()
+                            let is_remaining = parameter
+                                .type_
+                                .path
+                                .last()
+                                .generics
+                                .types
+                                .first()
+                                .is_some_and(|inner| inner.path.last().identifier == "Remaining");
+                            if is_remaining {
+                                parameters.push(quote! {
+                                    #name: impl IntoIterator<Item = solarium_client::wire::AccountMeta>
+                                });
+                                remaining = Some(name);
+                            } else if parameter.type_.is_mutable_reference()
                                 || parameter.type_.is_constant_reference()
                             {
                                 let is_writable = ligen::idl::Literal::from(
@@ -195,6 +206,7 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                         if arguments.is_empty() {
                             arguments.push(quote! { () });
                         }
+                        let remaining = remaining.map(|name| quote! { accounts.extend(#name); });
                         let client_method = quote! {
                             pub fn #instruction(#(#parameters),*) -> Result<solarium_client::wire::Instruction> {
                                 Self::#instruction_with_address(#program_id, #(#message_builder_arguments),*)
@@ -204,12 +216,15 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                                 program_address: solarium_client::wire::Pubkey,
                                 #(#parameters),*
                             ) -> Result<solarium_client::wire::Instruction> {
-                                let instruction_data = solarium_client::Instruction::new(solarium::discriminator!(#discriminator), (#(#arguments),*,));
+                                let instruction_data = solarium_client::Instruction::new(#discriminator, (#(#arguments),*,));
                                 let instruction_data = solarium_client::prelude::borsh::to_vec(&instruction_data)?;
+                                #[allow(unused_mut)]
+                                let mut accounts = vec![#(#accounts),*];
+                                #remaining
                                 Ok(solarium_client::wire::Instruction::new_with_bytes(
                                     program_address,
                                     &instruction_data,
-                                    vec![#(#accounts),*],
+                                    accounts,
                                 ))
                             }
                         };
@@ -249,5 +264,70 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                 #(#items)*
             }
         })
+    }
+}
+
+/// The bytes a client starts `method`'s instruction with — the same ones `#[program]` dispatches
+/// on: `#[instruction(discriminator = ...)]` when the method gives one, `"global:<name>"` hashed
+/// when it does not.
+fn discriminator(method: &ligen::idl::Method) -> Result<proc_macro2::TokenStream> {
+    let given = method
+        .attributes
+        .get_group("instruction")
+        .and_then(|group| group.get_named("discriminator"));
+    Ok(match given {
+        None => {
+            let namespace = format!("global:{}", method.identifier);
+            quote! { solarium::discriminator!(#namespace) }
+        }
+        Some(ligen::idl::Literal::String(namespace)) => quote! { solarium::discriminator!(#namespace) },
+        Some(ligen::idl::Literal::UnsignedInteger(value)) => quote! { (#value as u64).to_le_bytes() },
+        Some(ligen::idl::Literal::Integer(value)) if *value >= 0 => {
+            let value = *value as u64;
+            quote! { (#value as u64).to_le_bytes() }
+        }
+        Some(other) => {
+            return Err(ligen::common::Error::Message(format!(
+                "`{}`: a discriminator is an integer or a string to hash, not {other:?}",
+                method.identifier
+            )))
+        }
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ligen::transformer::Transformer;
+    use ligen_rust::parser::RustInterfaceParser;
+
+    fn methods() -> Vec<ligen::idl::Method> {
+        let program: syn::ItemImpl = syn::parse_quote! {
+            impl Game {
+                pub fn plain(&self) -> Result<()> { Ok(()) }
+                #[instruction(discriminator = 16)]
+                pub fn numbered(&self) -> Result<()> { Ok(()) }
+                #[instruction(discriminator = "global:process_undelegation", alias = 3)]
+                pub fn named(&self) -> Result<()> { Ok(()) }
+            }
+        };
+        RustInterfaceParser::new()
+            .transform(program, &Default::default())
+            .unwrap()
+            .methods
+    }
+
+    #[test]
+    fn a_client_sends_what_the_program_dispatches_on() {
+        let generated: Vec<String> = methods()
+            .iter()
+            .map(|method| discriminator(method).unwrap().to_string())
+            .collect();
+        assert_eq!(generated[0], quote! { solarium::discriminator!("global:plain") }.to_string());
+        assert_eq!(generated[1], quote! { (16u64 as u64).to_le_bytes() }.to_string());
+        assert_eq!(
+            generated[2],
+            quote! { solarium::discriminator!("global:process_undelegation") }.to_string()
+        );
     }
 }

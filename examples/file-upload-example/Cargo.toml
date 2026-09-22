@@ -14,6 +14,8 @@ bytemuck.workspace = true
 bytemuck_derive.workspace = true
 
 [dev-dependencies]
+solana-sdk-ids = "3"
+solana-compute-budget-interface = "3"
 solarium-client.workspace = true
 tokio.workspace = true
 anyhow.workspace = true
