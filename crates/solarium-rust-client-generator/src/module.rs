@@ -195,12 +195,10 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                             } else {
                                 let type_ =
                                     self.type_generator.generate(&parameter.type_, config)?;
-                                parameters.push(quote! {
-                                    #name: impl Into<#type_>
-                                });
-                                arguments.push(quote! {
-                                    #name.into()
-                                });
+                                let (parameter, argument) =
+                                    value_parameter(&name, &parameter.type_, &type_);
+                                parameters.push(parameter);
+                                arguments.push(argument);
                             }
                         }
                         if arguments.is_empty() {
@@ -267,6 +265,46 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
     }
 }
 
+/// How a client takes one of an instruction's values, and how it passes it on.
+///
+/// `impl Into<T>` wherever a conversion is worth having — `&str` for a `String`, an array for a
+/// `Pubkey` — but never for a bare number. An integer literal there has nothing to infer itself
+/// from: it falls back to `i32`, which converts into no other integer type, so `times(10)` against
+/// a `u32` is a compile error and the caller has to write `10u32`. A scalar is taken as itself.
+///
+/// The argument follows from that. Behind `impl Into<T>` there is one candidate and `.into()`
+/// resolves to it; a scalar is already the type wanted, and `.into()` on it would be ambiguous
+/// rather than free — the arguments go into a tuple that `Instruction::new` is generic over, so
+/// nothing downstream would pin the target down.
+fn value_parameter(
+    name: &syn::Ident,
+    type_: &ligen::idl::Type,
+    rendered: &syn::Type,
+) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+    if is_scalar(type_) {
+        (quote! { #name: #rendered }, quote! { #name })
+    } else {
+        (
+            quote! { #name: impl Into<#rendered> },
+            quote! { #name.into() },
+        )
+    }
+}
+
+/// Whether `type_` is a bare number-like primitive, as opposed to something a value converts into.
+///
+/// Numbers only, and only bare ones. `Vec<u64>` and `[u8; 32]` keep `impl Into<T>`, and so do
+/// `bool` and `char`: a literal of any of those is typed by its own contents, so nothing is left
+/// for inference to guess at. It is the numbers that have a fallback to go wrong.
+fn is_scalar(type_: &ligen::idl::Type) -> bool {
+    const SCALARS: [&str; 14] = [
+        "u8", "u16", "u32", "u64", "u128", "usize", "i8", "i16", "i32", "i64", "i128", "isize",
+        "f32", "f64",
+    ];
+    let last = type_.path.last();
+    last.generics.types.is_empty() && SCALARS.iter().any(|scalar| last.identifier == *scalar)
+}
+
 /// The bytes a client starts `method`'s instruction with — the same ones `#[program]` dispatches
 /// on: `#[instruction(discriminator = ...)]` when the method gives one, `"global:<name>"` hashed
 /// when it does not.
@@ -280,8 +318,12 @@ fn discriminator(method: &ligen::idl::Method) -> Result<proc_macro2::TokenStream
             let namespace = format!("global:{}", method.identifier);
             quote! { solarium::discriminator!(#namespace) }
         }
-        Some(ligen::idl::Literal::String(namespace)) => quote! { solarium::discriminator!(#namespace) },
-        Some(ligen::idl::Literal::UnsignedInteger(value)) => quote! { (#value as u64).to_le_bytes() },
+        Some(ligen::idl::Literal::String(namespace)) => {
+            quote! { solarium::discriminator!(#namespace) }
+        }
+        Some(ligen::idl::Literal::UnsignedInteger(value)) => {
+            quote! { (#value as u64).to_le_bytes() }
+        }
         Some(ligen::idl::Literal::Integer(value)) if *value >= 0 => {
             let value = *value as u64;
             quote! { (#value as u64).to_le_bytes() }
@@ -317,14 +359,87 @@ mod tests {
             .methods
     }
 
+    fn inputs() -> Vec<ligen::idl::Parameter> {
+        let program: syn::ItemImpl = syn::parse_quote! {
+            impl Game {
+                pub fn play(
+                    &self,
+                    prompt: String,
+                    times: u32,
+                    stake: u64,
+                    odds: f32,
+                    loud: bool,
+                    seeds: Vec<Vec<u8>>,
+                    randomness: [u8; 32],
+                ) -> Result<()> {
+                    Ok(())
+                }
+            }
+        };
+        RustInterfaceParser::new()
+            .transform(program, &Default::default())
+            .unwrap()
+            .methods
+            .remove(0)
+            .inputs
+    }
+
+    #[test]
+    fn a_number_is_taken_as_itself_and_anything_else_by_conversion() {
+        let rendered: Vec<(String, bool)> = inputs()
+            .iter()
+            .map(|input| (input.identifier.to_string(), is_scalar(&input.type_)))
+            .collect();
+        assert_eq!(
+            rendered,
+            vec![
+                ("prompt".to_string(), false),
+                ("times".to_string(), true),
+                ("stake".to_string(), true),
+                ("odds".to_string(), true),
+                // A literal of any of these types itself, so a conversion costs the caller
+                // nothing and an integer's fallback never comes into it.
+                ("loud".to_string(), false),
+                ("seeds".to_string(), false),
+                ("randomness".to_string(), false),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_number_is_passed_on_without_a_conversion_to_infer() {
+        let name: syn::Ident = syn::parse_quote!(times);
+        let rendered: syn::Type = syn::parse_quote!(u32);
+        let scalar = ligen::idl::Type::from(ligen::idl::Path::from("u32"));
+        let (parameter, argument) = value_parameter(&name, &scalar, &rendered);
+        assert_eq!(parameter.to_string(), quote! { times: u32 }.to_string());
+        assert_eq!(argument.to_string(), quote! { times }.to_string());
+
+        let name: syn::Ident = syn::parse_quote!(prompt);
+        let rendered: syn::Type = syn::parse_quote!(String);
+        let string = ligen::idl::Type::from(ligen::idl::Path::from("String"));
+        let (parameter, argument) = value_parameter(&name, &string, &rendered);
+        assert_eq!(
+            parameter.to_string(),
+            quote! { prompt: impl Into<String> }.to_string()
+        );
+        assert_eq!(argument.to_string(), quote! { prompt.into() }.to_string());
+    }
+
     #[test]
     fn a_client_sends_what_the_program_dispatches_on() {
         let generated: Vec<String> = methods()
             .iter()
             .map(|method| discriminator(method).unwrap().to_string())
             .collect();
-        assert_eq!(generated[0], quote! { solarium::discriminator!("global:plain") }.to_string());
-        assert_eq!(generated[1], quote! { (16u64 as u64).to_le_bytes() }.to_string());
+        assert_eq!(
+            generated[0],
+            quote! { solarium::discriminator!("global:plain") }.to_string()
+        );
+        assert_eq!(
+            generated[1],
+            quote! { (16u64 as u64).to_le_bytes() }.to_string()
+        );
         assert_eq!(
             generated[2],
             quote! { solarium::discriminator!("global:process_undelegation") }.to_string()

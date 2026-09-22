@@ -44,6 +44,16 @@ fn dynamic_address_overrides_custom_program_address() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn an_integer_argument_takes_a_plain_literal() -> Result<()> {
+    // A count used to be taken as `impl Into<u32>`, and an integer literal has nothing there to
+    // infer itself from: it falls back to `i32`, which converts into no other integer type. This
+    // call is the whole test — without a suffix on the `10` it did not compile.
+    let instruction = Example::print_prompt_instruction(Pubkey::new_unique(), "hello", 10)?;
+    assert_eq!(instruction.program_id, Example::id());
+    Ok(())
+}
+
 #[tokio::test]
 async fn solana() -> Result<()> {
     let connection = Connection::new(

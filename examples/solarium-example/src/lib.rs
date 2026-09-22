@@ -48,4 +48,12 @@ impl Example {
         data.data()?.message = message;
         Ok(())
     }
+
+    /// Takes a count, so a generated client is exercised against a plain integer argument.
+    pub fn print_prompt(&self, _payer: &Signer, prompt: String, times: u32) -> Result<()> {
+        for _ in 0..times {
+            msg!("{}", prompt.as_str());
+        }
+        Ok(())
+    }
 }
