@@ -8,7 +8,9 @@ license.workspace = true
 authors.workspace = true
 
 [dependencies]
-solana-sdk.workspace = true
+solana-pubkey.workspace = true
+solana-keypair.workspace = true
+solana-signer.workspace = true
 anyhow.workspace = true
 
 ligen.workspace = true

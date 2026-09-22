@@ -2,9 +2,9 @@ use std::path::{Path, PathBuf};
 
 use crate::{prelude::*, IdlType};
 use ligen::idl::Identifier;
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::{EncodableKey, Signer};
+use solana_keypair::Keypair;
+use solana_pubkey::Pubkey;
+use solana_signer::{EncodableKey, Signer};
 
 use crate::idl::Idl;
 use crate::Workspace;
@@ -22,13 +22,25 @@ impl Program {
         std::fs::create_dir_all(&output_directory)
             .context("Failed to create the program output directory")?;
         println!("Building {}", self.name);
-        let status = tokio::process::Command::new("cargo")
+        let mut command = tokio::process::Command::new("cargo");
+        command
             .arg("build-sbf")
             .arg("--manifest-path")
             .arg(self.folder.join("Cargo.toml"))
             .arg("--sbf-out-dir")
             .arg(&output_directory)
-            .current_dir(&workspace.root)
+            .current_dir(&workspace.root);
+        // cargo build-sbf exports CC and AR for the SBF target, and cc-rs picks them up for the
+        // crates cargo builds for the host as well, such as the dependencies of a proc macro.
+        // cc-rs prefers HOST_* when it is not cross-compiling, so pointing those at the host
+        // tools keeps the SBF target on the platform-tools toolchain and everything else on the
+        // host one.
+        for (variable, tool) in [("HOST_CC", "/usr/bin/cc"), ("HOST_AR", "/usr/bin/ar")] {
+            if std::env::var_os(variable).is_none() && Path::new(tool).exists() {
+                command.env(variable, tool);
+            }
+        }
+        let status = command
             .status()
             .await
             .with_context(|| format!("Failed to build {}", self.name))?;
