@@ -10,6 +10,9 @@ Install the Solarium CLI:
 cargo install solarium-cli
 ```
 
+Programs build with the platform tools of `cargo build-sbf`. The client side (solarium-client,
+and so a program's tests) builds on solana-client 4.3, which needs rustc 1.97.1 or newer.
+
 Run the tests:
 
 ```bash
@@ -53,6 +56,10 @@ solarium deploy --url https://api.devnet.solana.com
 The default backend uses solana-program. A real Pinocchio backend is available behind the
 "pinocchio" feature; it uses Pinocchio account views, entrypoint parsing, CPIs, rent, and resizing.
 The two backend features are mutually exclusive.
+
+Since solana-program 5, both backends are built on the same no_std crates: Pubkey is
+solana-address's Address, which is Pinocchio's too, and ProgramError is solana-program-error's
+on both, so keys and errors pass between them without conversion.
 
 A program crate can forward the selection like this:
 

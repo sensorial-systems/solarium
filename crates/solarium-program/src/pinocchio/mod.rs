@@ -18,11 +18,11 @@ impl<'a> AccountInfo<'a> {
     }
 
     pub fn key(&self) -> Pubkey {
-        Pubkey::new_from_array(self.view.address().to_bytes())
+        *self.view.address()
     }
 
     pub fn owner(&self) -> Pubkey {
-        Pubkey::new_from_array(self.view.owner().to_bytes())
+        *self.view.owner()
     }
 
     pub fn is_signer(&self) -> bool {
@@ -106,12 +106,4 @@ pub(crate) fn minimum_balance(space: usize) -> Result<u64, ProgramError> {
     let _ = rent.burn_percent;
     let bytes = 128 + space as u64;
     Ok((bytes.saturating_mul(rent.lamports_per_byte_year) as f64 * rent.exemption_threshold) as u64)
-}
-
-pub(crate) fn address(pubkey: &Pubkey) -> pinocchio::Address {
-    pinocchio::Address::new_from_array(pubkey.to_bytes())
-}
-
-pub(crate) fn pubkey(address: &pinocchio::Address) -> Pubkey {
-    Pubkey::new_from_array(address.to_bytes())
 }

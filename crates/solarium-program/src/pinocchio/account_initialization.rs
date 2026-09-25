@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::{pinocchio_backend::address, Account, Program, Signer};
+use crate::{Account, Program, Signer};
 use pinocchio::cpi::{Seed, Signer as CpiSigner};
 use pinocchio_system::instructions::CreateAccount;
 
@@ -105,7 +105,7 @@ fn create<'a, T: Initialization, S: Seeds>(
         to: account.info.view(),
         lamports: crate::pinocchio_backend::minimum_balance(space)?,
         space: space as u64,
-        owner: &address(T::owner()),
+        owner: T::owner(),
     }
     .invoke_signed(&[signer])?;
     Ok(())

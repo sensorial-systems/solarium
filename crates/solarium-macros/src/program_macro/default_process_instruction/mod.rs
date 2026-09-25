@@ -267,8 +267,7 @@ pub fn generate(
                 accounts: &mut [solarium_program::prelude::pinocchio::AccountView],
                 instruction_data: &[u8],
             ) -> Result<()> {
-                let program_id = solarium_program::Pubkey::new_from_array(program_id.to_bytes());
-                check_id(&program_id)
+                check_id(program_id)
                     .then_some(())
                     .ok_or(solarium_program::ProgramError::IncorrectProgramId)?;
                 match Self::instruction(instruction_data)

@@ -183,63 +183,13 @@ pub struct Program<'a>(std::marker::PhantomData<&'a ()>);
 #[derive(Debug, Clone)]
 pub struct Remaining<'a>(std::marker::PhantomData<&'a ()>);
 
+// `Pubkey` is `solana_address::Address` on every backend and target, so the derivation is its own.
 pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
-    #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
-    {
-        solana_program::pubkey::Pubkey::find_program_address(seeds, program_id)
-    }
-    #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
-    {
-        let program_id = pinocchio_backend::address(program_id);
-        let (address, bump) = solana_address::Address::find_program_address(seeds, &program_id);
-        (pinocchio_backend::pubkey(&address), bump)
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        let mut bump_seed = [u8::MAX];
-        for bump in (0..=u8::MAX).rev() {
-            bump_seed[0] = bump;
-            let mut seeds_with_bump = seeds.to_vec();
-            seeds_with_bump.push(&bump_seed);
-            if let Ok(address) = create_program_address(&seeds_with_bump, program_id) {
-                return (address, bump);
-            }
-        }
-        panic!("Could not find a valid program address");
-    }
+    Pubkey::find_program_address(seeds, program_id)
 }
 
 pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pubkey, ()> {
-    #[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
-    {
-        solana_program::pubkey::Pubkey::create_program_address(seeds, program_id).map_err(|_| ())
-    }
-    #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]
-    {
-        let program_id = pinocchio_backend::address(program_id);
-        solana_address::Address::create_program_address(seeds, &program_id)
-            .map(|address| pinocchio_backend::pubkey(&address))
-            .map_err(|_| ())
-    }
-    #[cfg(target_arch = "wasm32")]
-    {
-        let mut hasher = solana_sha256_hasher::Hasher::default();
-        for seed in seeds {
-            hasher.hash(seed);
-        }
-        hasher.hash(program_id.as_ref());
-        hasher.hash(b"ProgramDerivedAddress");
-        let hash = hasher.result();
-        let bytes: [u8; 32] = hash.to_bytes();
-        if curve25519_dalek::edwards::CompressedEdwardsY(bytes)
-            .decompress()
-            .is_some()
-        {
-            Err(())
-        } else {
-            Ok(Pubkey::new_from_array(bytes))
-        }
-    }
+    Pubkey::create_program_address(seeds, program_id).map_err(|_| ())
 }
 
 pub trait PubkeyExt {
