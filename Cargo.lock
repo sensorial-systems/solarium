@@ -5994,6 +5994,7 @@ dependencies = [
  "solana-keypair",
  "solana-pubkey 4.4.0",
  "solana-signer",
+ "syn 2.0.119",
  "tokio",
  "toml",
  "walkdir",

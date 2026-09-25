@@ -137,6 +137,29 @@ frame, and lets a function the method calls once be inlined too (`#[inline(alway
 its accounts in the slice rather than being passed each one — past three accounts, every one
 passed costs instructions at the call.
 
+## Generated clients
+
+`generate_client!` writes a program's client from the program's own source:
+
+~~~rust
+mod slots_client {
+    solarium_client::generate_client!("slots");
+}
+
+// One builder per instruction, the accounts and arguments in the program's order.
+let instruction = slots_client::Slots::request_bet_instruction(player, spin, /* ... */)?;
+~~~
+
+- The program is found in the workspace of the crate asking, or, failing that, among its
+  dependencies, so a frontend in another repository depends on the program crate (with
+  `no-entrypoint`) and generates against it.
+- The address is the program's own `ID` unless a second argument names another.
+- An account parameter typed `Signer` is marked a signer; `&mut` marks it writable.
+- With solarium-client's default `rpc` feature the client also holds a `Connection`, and builds,
+  signs and sends messages. Without it (`default-features = false`) the client is its instruction
+  builders alone, which build for `wasm32-unknown-unknown`: a browser client sends them with a
+  wallet and an RPC of its own.
+
 ## Documentation (mdBook)
 
 The tutorial lives under `docs/` and is built with mdBook.

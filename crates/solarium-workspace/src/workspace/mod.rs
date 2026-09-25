@@ -20,7 +20,13 @@ impl Workspace {
         let root = root.as_ref().to_path_buf();
         let mut programs = vec![];
 
-        for directory in walkdir::WalkDir::new(&root) {
+        // Build output, dependencies and hidden folders hold no program of this workspace's own,
+        // and a proc macro that generates a client walks this tree on every build.
+        let own = |entry: &walkdir::DirEntry| {
+            let name = entry.file_name().to_string_lossy();
+            entry.depth() == 0 || !(name == "target" || name == "node_modules" || name.starts_with('.'))
+        };
+        for directory in walkdir::WalkDir::new(&root).into_iter().filter_entry(own) {
             let entry = directory.context("Failed to read directory")?;
             let entry = entry.path();
             if entry.is_file()

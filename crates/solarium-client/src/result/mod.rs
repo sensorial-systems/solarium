@@ -6,8 +6,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Program error: {0}")]
     ProgramError(ProgramError),
+    #[cfg(feature = "rpc")]
     #[error("Client error: {0}")]
     ClientError(solana_client::client_error::ClientError),
+    #[cfg(feature = "rpc")]
     #[error("Subscription error: {0}")]
     SubscriptionError(solana_client::pubsub_client::PubsubClientError),
     #[error("IO error: {0}")]
@@ -20,12 +22,14 @@ impl From<ProgramError> for Error {
     }
 }
 
+#[cfg(feature = "rpc")]
 impl From<solana_client::client_error::ClientError> for Error {
     fn from(error: solana_client::client_error::ClientError) -> Self {
         Error::ClientError(error)
     }
 }
 
+#[cfg(feature = "rpc")]
 impl From<solana_client::pubsub_client::PubsubClientError> for Error {
     fn from(error: solana_client::pubsub_client::PubsubClientError) -> Self {
         Error::SubscriptionError(error)
@@ -43,7 +47,9 @@ impl From<Error> for ProgramError {
         match error {
             Error::ProgramError(error) => error,
             Error::IoError(_) => ProgramError::BorshIoError,
+            #[cfg(feature = "rpc")]
             Error::ClientError(_) => ProgramError::BorshIoError,
+            #[cfg(feature = "rpc")]
             Error::SubscriptionError(_) => ProgramError::BorshIoError,
         }
     }

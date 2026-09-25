@@ -1,4 +1,3 @@
-use ligen::common::anyhow::Context;
 use ligen::generator::{Config, Generator};
 use ligen::prelude::*;
 use ligen_rust::generator::{RustIdentifierGenerator, RustLiteralGenerator, RustTypeGenerator};
@@ -22,19 +21,85 @@ impl ModuleGenerator {
             #[allow(unused_imports)]
             use solarium_client::prelude::*;
 
-            pub struct #client {
-                connection: solarium_client::Connection,
-                address: Pubkey,
-            }
-
-
-            impl #client {
-                pub fn new(connection: &solarium_client::Connection) -> Self {
-                    let connection = connection.clone();
-                    let address = #program_id;
-                    Self { connection, address }
+            solarium_client::__rpc! {
+                pub struct #client {
+                    connection: solarium_client::Connection,
+                    address: Pubkey,
                 }
 
+                impl #client {
+                    pub fn new(connection: &solarium_client::Connection) -> Self {
+                        let connection = connection.clone();
+                        let address = #program_id;
+                        Self { connection, address }
+                    }
+                }
+
+                impl solarium_client::Program for #client {
+                    type MessageBuilder = #message_builder;
+
+                    fn message_builder(&self) -> #message_builder {
+                        #message_builder::new(self.connection(), self.address)
+                    }
+
+                    fn id() -> Pubkey {
+                        #program_id
+                    }
+
+                    fn connection(&self) -> &solarium_client::Connection {
+                        &self.connection
+                    }
+                }
+
+                pub struct #message_builder(solarium_client::MessageBuilder, Pubkey);
+
+                impl std::ops::Deref for #message_builder {
+                    type Target = solarium_client::MessageBuilder;
+
+                    fn deref(&self) -> &Self::Target {
+                        &self.0
+                    }
+                }
+
+                impl std::ops::DerefMut for #message_builder {
+                    fn deref_mut(&mut self) -> &mut Self::Target {
+                        &mut self.0
+                    }
+                }
+
+                impl #message_builder {
+                    pub fn new(connection: &solarium_client::Connection, address: Pubkey) -> Self {
+                        Self(solarium_client::MessageBuilder::new(connection), address)
+                    }
+                }
+            }
+
+            // Without a connection the client is the program's address and nothing else: what
+            // its instructions are built against.
+            solarium_client::__no_rpc! {
+                #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+                pub struct #client {
+                    address: Pubkey,
+                }
+
+                impl Default for #client {
+                    fn default() -> Self {
+                        Self::new()
+                    }
+                }
+
+                impl #client {
+                    pub fn new() -> Self {
+                        Self { address: #program_id }
+                    }
+
+                    pub fn id() -> Pubkey {
+                        #program_id
+                    }
+                }
+            }
+
+            impl #client {
                 pub fn with_address(mut self, address: impl Into<Pubkey>) -> Self {
                     self.address = address.into();
                     self
@@ -42,44 +107,6 @@ impl ModuleGenerator {
 
                 pub fn address(&self) -> Pubkey {
                     self.address
-                }
-            }
-
-            impl solarium_client::Program for #client {
-                type MessageBuilder = #message_builder;
-
-                fn message_builder(&self) -> #message_builder {
-                    #message_builder::new(self.connection(), self.address)
-                }
-
-                fn id() -> Pubkey {
-                    #program_id
-                }
-
-                fn connection(&self) -> &solarium_client::Connection {
-                    &self.connection
-                }
-            }
-
-            pub struct #message_builder(solarium_client::MessageBuilder, Pubkey);
-
-            impl std::ops::Deref for #message_builder {
-                type Target = solarium_client::MessageBuilder;
-
-                fn deref(&self) -> &Self::Target {
-                    &self.0
-                }
-            }
-
-            impl std::ops::DerefMut for #message_builder {
-                fn deref_mut(&mut self) -> &mut Self::Target {
-                    &mut self.0
-                }
-            }
-
-            impl #message_builder {
-                pub fn new(connection: &solarium_client::Connection, address: Pubkey) -> Self {
-                    Self(solarium_client::MessageBuilder::new(connection), address)
                 }
             }
         })
@@ -91,28 +118,12 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
         let ident = self
             .identifier_generator
             .generate(&module.identifier, config)?;
-        let program_name = config
-            .get("program-name")
-            .context("Program name not found")?;
         let mut items: Vec<proc_macro2::TokenStream> = Default::default();
         for interface in &module.interfaces {
             if interface.attributes.get_group("program").is_some() {
                 let client = &interface.identifier;
                 let message_builder = client + "MessageBuilder";
                 let client = self.identifier_generator.generate(&client, config)?;
-                let program_name = self.literal_generator.generate(&program_name, config)?;
-                let program_id = match config.get("program-address") {
-                    Some(address) => {
-                        let address = self.literal_generator.generate(&address, config)?;
-                        quote! {
-                            <solarium_client::wire::Pubkey as std::str::FromStr>::from_str(#address)
-                                .expect("invalid custom Solana program address")
-                        }
-                    }
-                    None => quote! {
-                        solarium_client::program_id!(#program_name)
-                    },
-                };
                 let program_crate_lit = config.get("program-crate").expect("program-crate not set");
                 let program_crate: syn::Ident = syn::parse_str(
                     program_crate_lit
@@ -121,6 +132,20 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                         .expect("program-crate must be string literal"),
                 )
                 .expect("invalid program-crate ident");
+                let program_id = match config.get("program-address") {
+                    Some(address) => {
+                        let address = self.literal_generator.generate(&address, config)?;
+                        quote! {
+                            <solarium_client::wire::Pubkey as std::str::FromStr>::from_str(#address)
+                                .expect("invalid custom Solana program address")
+                        }
+                    }
+                    // The program's own `ID`, the address it declares for itself — what it checks
+                    // it runs as. `pub use` below brings it in.
+                    None => quote! {
+                        solarium_client::wire::Pubkey::new_from_array(#program_crate::ID.to_bytes())
+                    },
+                };
                 let message_builder = self
                     .identifier_generator
                     .generate(&message_builder, config)?;
@@ -175,9 +200,8 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                                 let is_writable = ligen::idl::Literal::from(
                                     parameter.type_.is_mutable_reference(),
                                 );
-                                let is_signer = ligen::idl::Literal::from(
-                                    parameter.type_.path.last().identifier == "Signer",
-                                );
+                                let is_signer =
+                                    ligen::idl::Literal::from(is_signer(&parameter.type_));
                                 let is_writable =
                                     self.literal_generator.generate(&is_writable, config)?;
                                 let is_signer =
@@ -210,7 +234,7 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                                 Self::#instruction_with_address(#program_id, #(#message_builder_arguments),*)
                             }
 
-                            fn #instruction_with_address(
+                            pub fn #instruction_with_address(
                                 program_address: solarium_client::wire::Pubkey,
                                 #(#parameters),*
                             ) -> Result<solarium_client::wire::Instruction> {
@@ -250,8 +274,10 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
                         #(#client_methods)*
                     }
 
-                    impl #message_builder {
-                        #(#message_builder_methods)*
+                    solarium_client::__rpc! {
+                        impl #message_builder {
+                            #(#message_builder_methods)*
+                        }
                     }
                 ));
             }
@@ -263,6 +289,19 @@ impl Generator<&ligen::idl::Module, syn::ItemMod> for ModuleGenerator {
             }
         })
     }
+}
+
+/// Whether an account parameter is a `Signer`. The parameter is a reference, and a reference is
+/// its own path segment with what it refers to as its one generic: `&Signer<'a>` ends in the
+/// reference, and `Signer` is inside it.
+fn is_signer(type_: &ligen::idl::Type) -> bool {
+    let last = type_.path.last();
+    let referenced = if type_.is_constant_reference() || type_.is_mutable_reference() {
+        last.generics.types.first().map(|inner| inner.path.last())
+    } else {
+        Some(last)
+    };
+    referenced.is_some_and(|segment| segment.identifier == "Signer")
 }
 
 /// How a client takes one of an instruction's values, and how it passes it on.
@@ -424,6 +463,41 @@ mod tests {
             quote! { prompt: impl Into<String> }.to_string()
         );
         assert_eq!(argument.to_string(), quote! { prompt.into() }.to_string());
+    }
+
+    #[test]
+    fn a_signer_is_marked_a_signer_whichever_way_it_is_borrowed() {
+        let program: syn::ItemImpl = syn::parse_quote! {
+            impl Game {
+                pub fn play<'a>(
+                    &self,
+                    player: &Signer<'a>,
+                    oracle: &mut Signer<'a>,
+                    table: &mut Account<'a>,
+                    house: &Account<'a>,
+                ) -> Result<()> {
+                    Ok(())
+                }
+            }
+        };
+        let signers: Vec<(String, bool)> = RustInterfaceParser::new()
+            .transform(program, &Default::default())
+            .unwrap()
+            .methods
+            .remove(0)
+            .inputs
+            .iter()
+            .map(|input| (input.identifier.to_string(), is_signer(&input.type_)))
+            .collect();
+        assert_eq!(
+            signers,
+            vec![
+                ("player".to_string(), true),
+                ("oracle".to_string(), true),
+                ("table".to_string(), false),
+                ("house".to_string(), false),
+            ]
+        );
     }
 
     #[test]

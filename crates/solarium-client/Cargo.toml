@@ -12,12 +12,27 @@ solarium.workspace = true
 solarium-program.workspace = true
 solana-pubkey.workspace = true
 solana-instruction.workspace = true
-solana-sdk.workspace = true
-solana-client.workspace = true
-solana-commitment-config.workspace = true
-solana-account-decoder-client-types.workspace = true
-tokio.workspace = true
-futures.workspace = true
-async-trait.workspace = true
+solana-sdk = { workspace = true, optional = true }
+solana-client = { workspace = true, optional = true }
+solana-commitment-config = { workspace = true, optional = true }
+solana-account-decoder-client-types = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
 shrinkwraprs.workspace = true
 thiserror.workspace = true
+
+[features]
+default = ["rpc"]
+# Talking to a cluster: connections, transactions, account fetches and subscriptions. Without it
+# a generated client is its instruction builders alone, which is what a browser build wants —
+# solana-client and tokio do not compile for wasm32.
+rpc = [
+    "dep:solana-sdk",
+    "dep:solana-client",
+    "dep:solana-commitment-config",
+    "dep:solana-account-decoder-client-types",
+    "dep:tokio",
+    "dep:futures",
+    "dep:async-trait",
+]
