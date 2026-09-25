@@ -54,12 +54,15 @@ solarium deploy --url https://api.devnet.solana.com
 ## Program backends
 
 The default backend uses solana-program. A real Pinocchio backend is available behind the
-"pinocchio" feature; it uses Pinocchio account views, entrypoint parsing, CPIs, rent, and resizing.
-The two backend features are mutually exclusive.
+"pinocchio" feature; it uses Pinocchio account views, entrypoint parsing, CPIs, and resizing.
+Features only add, so the two can both be on, as when a test's dependencies turn the default
+back on; Pinocchio is then the backend used.
 
 Since solana-program 5, both backends are built on the same no_std crates: Pubkey is
 solana-address's Address, which is Pinocchio's too, and ProgramError is solana-program-error's
-on both, so keys and errors pass between them without conversion.
+on both and on wasm, so keys and errors pass between them without conversion. Both backends
+quote rent with solana-rent's Rent, which Pinocchio's own does not match until SIMD-0194 is
+active.
 
 A program crate can forward the selection like this:
 
@@ -74,7 +77,8 @@ pinocchio = ["solarium-program/pinocchio"]
 ~~~
 
 Adjust the path for your project. If inheriting the dependency from a workspace, disable its
-defaults in the workspace dependency definition as well.
+defaults in the workspace dependency definition as well, or a Pinocchio build compiles
+solana-program for nothing.
 
 ~~~bash
 # Existing backend

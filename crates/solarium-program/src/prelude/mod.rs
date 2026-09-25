@@ -1,18 +1,18 @@
 pub use crate::result::*;
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use crate::AccountInfoExt;
 pub use crate::PubkeyExt;
 pub use solarium::prelude::*;
 
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use solana_program;
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use solana_program::account_info::AccountInfo;
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use solana_program::msg;
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use solana_program::program_error::ProgramError;
-#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "solana-program-backend", not(feature = "pinocchio")))]
 pub use solana_program::pubkey::Pubkey;
 
 #[cfg(all(not(target_arch = "wasm32"), feature = "pinocchio"))]

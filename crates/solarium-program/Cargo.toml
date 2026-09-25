@@ -19,11 +19,15 @@ solana-program = { workspace = true, optional = true }
 pinocchio = { workspace = true, optional = true }
 pinocchio-system = { workspace = true, optional = true }
 solana-program-log = { workspace = true, optional = true }
+solana-rent = { workspace = true, optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+solana-program-error = "3"
 
 [features]
 default = ["solana-program-backend"]
 solana-program-backend = ["dep:solana-program"]
-pinocchio = ["dep:pinocchio", "dep:pinocchio-system", "dep:solana-program-log"]
+pinocchio = ["dep:pinocchio", "dep:pinocchio-system", "dep:solana-program-log", "dep:solana-rent"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

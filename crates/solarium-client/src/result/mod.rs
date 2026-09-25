@@ -5,7 +5,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Program error: {0}")]
-    ProgramError(solana_program::program_error::ProgramError),
+    ProgramError(ProgramError),
     #[error("Client error: {0}")]
     ClientError(solana_client::client_error::ClientError),
     #[error("Subscription error: {0}")]
@@ -14,8 +14,8 @@ pub enum Error {
     IoError(std::io::Error),
 }
 
-impl From<solana_program::program_error::ProgramError> for Error {
-    fn from(error: solana_program::program_error::ProgramError) -> Self {
+impl From<ProgramError> for Error {
+    fn from(error: ProgramError) -> Self {
         Error::ProgramError(error)
     }
 }
@@ -38,13 +38,13 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<Error> for solana_program::program_error::ProgramError {
+impl From<Error> for ProgramError {
     fn from(error: Error) -> Self {
         match error {
             Error::ProgramError(error) => error,
-            Error::IoError(_) => solana_program::program_error::ProgramError::BorshIoError,
-            Error::ClientError(_) => solana_program::program_error::ProgramError::BorshIoError,
-            Error::SubscriptionError(_) => solana_program::program_error::ProgramError::BorshIoError,
+            Error::IoError(_) => ProgramError::BorshIoError,
+            Error::ClientError(_) => ProgramError::BorshIoError,
+            Error::SubscriptionError(_) => ProgramError::BorshIoError,
         }
     }
 }
